@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.react.mapper.users.UsersMapper">
+	<select id="getUserName" parameterType="String" resultType="UserVO">
+		SELECT A.USER_ID AS USER_ID
+			 , A.USER_PW AS USER_PW
+		  FROM USERS A
+		 WHERE A.USER_ID = #{user_id}
+	</select>
+	<select id="authenticate" parameterType="String" resultType="UserVO">
+		SELECT A.USER_ID AS USER_ID 
+		  FROM USERS A
+		 WHERE A.USER_ID = #{user_id}
+		   AND A.USER_PW = #{user_pw}
+	</select>
+	<insert id="join" parameterType="UserVO">
+		INSERT
+		  INTO USERS (
+					  USER_ID
+					  , USER_PW
+					  , USER_NM
+					  , MAIL	
+			 ) VALUES (
+			 		  #{user_id}
+			 		  , #{user_pw}
+			 		  , #{user_nm}
+			 		  , #{mail}
+						 )
+	</insert>
+</mapper>
