@@ -7,11 +7,10 @@
 		  FROM USERS A
 		 WHERE A.USER_ID = #{user_id}
 	</select>
-	<select id="authenticate" parameterType="String" resultType="UserVO">
-		SELECT A.USER_ID AS USER_ID 
+	<select id="getRefreshtoken" parameterType="String" resultType="String">
+		SELECT A.R_TOKEN
 		  FROM USERS A
 		 WHERE A.USER_ID = #{user_id}
-		   AND A.USER_PW = #{user_pw}
 	</select>
 	<insert id="join" parameterType="UserVO">
 		INSERT
@@ -27,4 +26,14 @@
 			 		  , #{mail}
 						 )
 	</insert>
+	<update id="updateRefreshtoken" parameterType="String">
+		UPDATE USERS A
+		   SET A.R_TOKEN = #{r_token}
+		 WHERE A.USER_ID = #{user_id}
+	</update>
+	<update id="initRefreshtoken" parameterType="String">
+		UPDATE USERS A
+		   SET A.R_TOKEN = ''
+		 WHERE A.USER_ID = #{user_id}
+	</update>
 </mapper>

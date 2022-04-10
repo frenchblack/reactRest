@@ -10,5 +10,7 @@ import com.spring.react.vo.UserVO;
 public interface UsersMapper {
 	UserVO getUserName(String user_nm);
 	int join(UserVO userVO);
-	UserVO authenticate(String user_id, String user_pw);
+	String getRefreshtoken(String user_id);
+	int updateRefreshtoken(String user_id, String r_token);
+	int initRefreshtoken(String user_id);
 }

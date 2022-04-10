@@ -20,6 +20,7 @@ public class Users {
 	@Autowired
 	public JwtUserDetailsService jwtUserDetailsService;
 
+	//회원가입
 	@RequestMapping(value = "/signup", method = RequestMethod.POST)
 	public Map<String, Object> join(@RequestBody UserVO userVO) {
 		Map<String, Object> map = new HashMap<String, Object>();
@@ -30,6 +31,7 @@ public class Users {
 		return map;
 	}
 	
+	//중복확인
 	@RequestMapping(value = "/checkId", method = RequestMethod.POST)
 	public Map<String, Object> checkId(@RequestBody UserVO userVO) {
 		Map<String, Object> map = new HashMap<String, Object>();

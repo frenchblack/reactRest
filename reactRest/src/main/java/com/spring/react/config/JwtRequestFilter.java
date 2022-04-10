@@ -31,14 +31,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
 		final String requestTokenHeader = request.getHeader("Authorization");
+		
 		System.out.println(requestTokenHeader);
+		
 		String username = null;
 		String jwtToken = null;
-		// JWT Token is in the form "Bearer token". Remove Bearer word and get
-		// only the Token
+
+		// Authorization에 토큰이 존재하며 Bearer로 시작 시
 		if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
+			// "Bearer " 단어 삭제
 			jwtToken = requestTokenHeader.substring(7);
 			try {
+				//토큰으로부터 유저 닉네임 가져옴
 				username = jwtTokenUtil.getUsernameFromToken(jwtToken);
 			} catch (IllegalArgumentException e) {
 				System.out.println("Unable to get JWT Token");
