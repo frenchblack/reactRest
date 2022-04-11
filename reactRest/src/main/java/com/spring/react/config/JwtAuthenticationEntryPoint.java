@@ -37,11 +37,11 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Se
     	map.put("code", 401);
     	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     	response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        try (OutputStream os = response.getOutputStream()) {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.writeValue(os, map);
-            os.flush();
-        }
+//        try (OutputStream os = response.getOutputStream()) {
+//            ObjectMapper objectMapper = new ObjectMapper();
+//            objectMapper.writeValue(os, map);
+//            os.flush();
+//        }
         
 //        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
     }

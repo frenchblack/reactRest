@@ -83,4 +83,7 @@ public class JwtTokenUtil implements Serializable {
     }
     
     //리프레시토큰 유효성 검사(햔제 검사들어온 토큰, 데이터베이스의 토큰) <드게 받아서 유효기간 만료 안됐고 일치하는지 확인.>
+    public Boolean validateRefreshtoken(String r_token, String user_r_token) {
+    	return (r_token.equals(user_r_token) && !isTokenExpired(r_token));
+    }
 }
