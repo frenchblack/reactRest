@@ -2,6 +2,7 @@ package com.spring.react.config;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -9,7 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,13 +39,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
 		final String requestTokenHeader = request.getHeader("Authorization");
-		final String requestRefreshtokenHeader = request.getHeader("Refresh");
-		final String requestUserHeader = request.getHeader("User");
 		
-		System.out.println(requestTokenHeader);
+		System.out.println("doFilterInternal : " + requestTokenHeader);
 		
 		String username = null;
 		String jwtToken = null;
+		int status = HttpStatus.UNAUTHORIZED.value();
 
 		// Authorization에 토큰이 존재하며 Bearer로 시작 시
 		if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
@@ -60,14 +61,28 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 				throw e;
 			//액세스토큰 만료
 			} catch (ExpiredJwtException e) {
+				//requestBody 데이터 획득
+				String requestRefreshtoken = null;
+				String requestUser = null;
+
+				try {
+					ObjectMapper mapper = new ObjectMapper();
+					HashMap<String, String> map = mapper.readValue(request.getReader(), HashMap.class);
+					requestRefreshtoken = map.get("Refresh");
+					requestUser = map.get("User");
+					System.out.println(map);
+				} catch (Exception read_e) {
+					System.out.println( "request body read error : " + read_e );
+				}
+
 				//리프레시토큰 검사
-				if ( requestRefreshtokenHeader !=  null && !requestRefreshtokenHeader.equals("") ) {
-					if ( requestRefreshtokenHeader.startsWith("Bearer ") && requestUserHeader != null ) {
-						String r_token = requestRefreshtokenHeader.substring(7);
+				if ( requestRefreshtoken !=  null && !requestRefreshtoken.equals("") ) {
+					if ( requestRefreshtoken.startsWith("Bearer ") && requestUser != null ) {
+						String r_token = requestRefreshtoken.substring(7);
 						boolean isValidate = false;
 						try {
 							System.out.println("start refresh validate");
-							isValidate = validateRefresh(requestUserHeader, r_token);
+							isValidate = validateRefresh(requestUser, r_token);
 							System.out.println("end refresh validate : " + isValidate);
 						} catch (Exception r_e) {
 							System.out.println("error refresh validate : " + r_e);
@@ -75,34 +90,42 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 						}
 						
 						if ( isValidate ) {
-							PrintWriter writer = response.getWriter();
-							ObjectMapper objMapper = new ObjectMapper();
-							
 							response.setContentType("application/json");
 					        response.setCharacterEncoding("utf-8");
 							
-							writer.write(objMapper.writeValueAsString(doRefreshTokens(requestUserHeader)));
+					        PrintWriter writer = response.getWriter();
+					        ObjectMapper objMapper = new ObjectMapper();
+							writer.write(objMapper.writeValueAsString(doRefreshTokens(requestUser)));
 							
-//							String result = objMapper.writeValueAsString(doRefreshTokens(requestUserHeader));
-//									ResponseEntity.ok(doRefreshTokens(requestUserHeader)).toString();
-							
-							
-							
+							status = HttpStatus.OK.value();
+									
+//							String result = objMapper.writeValueAsString(doRefreshTokens(requestUser));
+//									ResponseEntity.ok(doRefreshTokens(requestUser)).toString();
+		
 							System.out.println("doRefreshTokens");
 							
+						} else {
+					    	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+					    	response.setStatus(status);
+					    	System.out.println("not equal refreshToken");
 						}
 					} else {
-						throw new IllegalArgumentException();
+				    	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+				    	response.setStatus(status);
+						System.out.println("User parameter is not exist");
+//						throw new IllegalArgumentException();
 					}
 				} else {
+			    	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+			    	response.setStatus(status);
 					System.out.println("not eixist refresh token");
 				}
-//				System.out.println("JWT Token has expired"  + requestRefreshtokenHeader);
+//				System.out.println("JWT Token has expired"  + requestRefreshtoken);
 //				throw e;
 			} catch (SignatureException e) {
 				//잘못된 토큰
 				System.out.println("SignatureException");
-				throw e;
+//				throw e;
 			}
 		} else {
 			logger.warn("JWT Token does not begin with Bearer String");
@@ -124,7 +147,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 				SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 			}
-		}
+		} 
+		
 		chain.doFilter(request, response);
 	}
 	
