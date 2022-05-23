@@ -42,6 +42,17 @@ public class Users {
 		return map;
 	}
 	
+	//로그아웃
+	@RequestMapping(value = "/userLogout", method = RequestMethod.POST)
+	public Map<String, Object> logout(@RequestBody UserVO userVO) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		System.out.println(userVO.getUsername());
+		map.put("result", jwtUserDetailsService.initRefreshtoken(userVO.getUsername()));
+		map.put("message", "로그아웃이 완료되었습니다.");
+		
+		return map;
+	}
+	
 	@RequestMapping(value = "/getUserMenu", method = RequestMethod.GET)
 	public Map<String, Object> getUserMenu(@RequestParam String user_id) {
 		Map<String, Object> map = new HashMap<String, Object>();

@@ -57,7 +57,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			//잘못된 액세스 토큰
 			} catch (IllegalArgumentException e) {
 				//재로그인요청 보내야함.
-				System.out.println("Unable to get JWT Token");
+//				System.out.println("Unable to get JWT Token");
 				throw e;
 			//액세스토큰 만료
 			} catch (ExpiredJwtException e) {
@@ -70,9 +70,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 					HashMap<String, String> map = mapper.readValue(request.getReader(), HashMap.class);
 					requestRefreshtoken = map.get("Refresh");
 					requestUser = map.get("User");
-					System.out.println(map);
+//					System.out.println(map);
 				} catch (Exception read_e) {
-					System.out.println( "request body read error : " + read_e );
+//					System.out.println( "request body read error : " + read_e );
 				}
 
 				//리프레시토큰 검사
@@ -81,11 +81,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 						String r_token = requestRefreshtoken.substring(7);
 						boolean isValidate = false;
 						try {
-							System.out.println("start refresh validate");
+//							System.out.println("start refresh validate");
 							isValidate = validateRefresh(requestUser, r_token);
-							System.out.println("end refresh validate : " + isValidate);
+//							System.out.println("end refresh validate : " + isValidate);
 						} catch (Exception r_e) {
-							System.out.println("error refresh validate : " + r_e);
+//							System.out.println("error refresh validate : " + r_e);
 							// TODO: handle exception
 						}
 						
@@ -102,34 +102,35 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 //							String result = objMapper.writeValueAsString(doRefreshTokens(requestUser));
 //									ResponseEntity.ok(doRefreshTokens(requestUser)).toString();
 		
-							System.out.println("doRefreshTokens");
+//							System.out.println("doRefreshTokens");
 							
 						} else {
 					    	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 					    	response.setStatus(status);
-					    	System.out.println("not equal refreshToken");
+//					    	System.out.println("not equal refreshToken");
 						}
 					} else {
 				    	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 				    	response.setStatus(status);
-						System.out.println("User parameter is not exist");
+//						System.out.println("User parameter is not exist");
 //						throw new IllegalArgumentException();
 					}
 				} else {
 			    	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-			    	response.setStatus(status);
-					System.out.println("not eixist refresh token");
+//			    	response.setStatus(status);
+			    	response.setStatus(433);
+//					System.out.println("not eixist refresh token");
 				}
 //				System.out.println("JWT Token has expired"  + requestRefreshtoken);
 //				throw e;
 			} catch (SignatureException e) {
 				//잘못된 토큰
-				System.out.println("SignatureException");
+//				System.out.println("SignatureException");
 //				throw e;
 			}
 		} else {
 			logger.warn("JWT Token does not begin with Bearer String");
-			System.out.println("JWT Token does not begin with Bearer String");
+//			System.out.println("JWT Token does not begin with Bearer String");
 		}
 		
 		// Once we get the token validate it.
@@ -155,7 +156,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	//리프레시토큰 유효성 검사
 	private boolean validateRefresh(String username, String r_token) {
 		String user_r_token = jwtUserDetailsService.getRefreshtoken(username);
-		System.out.println("validateRefresh equals : " + r_token.equals(user_r_token));
+//		System.out.println("validateRefresh equals : " + r_token.equals(user_r_token));
 		
 		return jwtTokenUtil.validateRefreshtoken(r_token, user_r_token);
 	}

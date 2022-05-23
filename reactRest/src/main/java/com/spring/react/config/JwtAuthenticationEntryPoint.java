@@ -29,7 +29,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Se
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
     	Map<String, Object> map = new HashMap<String, Object>();
-    	System.out.println(authException);
+//    	System.out.println("entryPoint : " + authException);
     	if ( authException instanceof UsernameNotFoundException ) {
     		map.put("message", "존재하지 않는 아이디입니다.");
     	} else if ( authException instanceof BadCredentialsException ) {
@@ -40,6 +40,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Se
 	    	map.put("code", 401);
 	    	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 	    	response.setStatus(HttpStatus.UNAUTHORIZED.value());
+	    	response.setCharacterEncoding("utf-8");
 
 	        PrintWriter writer = response.getWriter();
 	        ObjectMapper objMapper = new ObjectMapper();
