@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.react.mapper.manage.ManageMapper">
+	<select id="getManageMenuList" resultType="MenuVO">
+		SELECT A.MENU_CD AS MENU_CD
+			 , A.P_CD AS P_CD
+			 , A.MENU_NM AS MENU_NM
+			 , A.MENU_LVL AS MENU_LVL
+			 , A.S_ORD AS S_ORD
+			 , A.USE_YN AS USE_YN
+			 , A.ETC AS ETC
+		  FROM MENU A
+		 ORDER BY A.MENU_CD
+	</select>
+</mapper>
