@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,15 +41,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		final String requestTokenHeader = request.getHeader("Authorization");
 		
+		//테스트용 프린트 삭제필요
 		System.out.println("doFilterInternal : " + requestTokenHeader);
+		if( requestTokenHeader != null ) {
+			//테스트용 프린트 삭제필요
+			System.out.println("requestTokenHeader != NULL : " + requestTokenHeader);
+		}
 		
 		String username = null;
 		String jwtToken = null;
 		int status = HttpStatus.UNAUTHORIZED.value();
 
-		// Authorization에 토큰이 존재하며 Bearer로 시작 시
-		if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-			// "Bearer " 단어 삭제
+		// Authorization에 토큰이 존재하며 Bearer로 시작 시 토큰유효검사
+		if ((requestTokenHeader != null && !requestTokenHeader.equals(""))  && requestTokenHeader.startsWith("Bearer ")) {
+			// "Bearer " 단어 삭제 
 			jwtToken = requestTokenHeader.substring(7);
 			try {
 				//토큰으로부터 유저 닉네임 가져옴
@@ -62,8 +68,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			//액세스토큰 만료
 			} catch (ExpiredJwtException e) {
 				//requestBody 데이터 획득
+				//테스트용 출력 삭제필요
+				System.out.println("ExpiredJwtException !!!");
 				String requestRefreshtoken = null;
 				String requestUser = null;
+//				throw new InsufficientAuthenticationException("JWT token expired", e);
 
 				try {
 					ObjectMapper mapper = new ObjectMapper();
@@ -116,10 +125,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 //						throw new IllegalArgumentException();
 					}
 				} else {
+					
 			    	response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 //			    	response.setStatus(status);
 			    	response.setStatus(433);
-//					System.out.println("not eixist refresh token");
+		    	
+			    	//테스트용 삭제필요
+//			    	System.out.println("assa" + MediaType.APPLICATION_JSON_VALUE);
+//					throw new ServletException(new TokenExpiredException("리프레시 토큰 없음"));
+//			    	response.setStatus(433);
+//			    	throw new InsufficientAuthenticationException("JWT token expired", e);
+					System.out.println("not eixist refresh token");
 				}
 //				System.out.println("JWT Token has expired"  + requestRefreshtoken);
 //				throw e;
@@ -128,9 +144,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 //				System.out.println("SignatureException");
 //				throw e;
 			}
-		} else {
+		} else if((requestTokenHeader != null && !requestTokenHeader.equals(""))){
 			logger.warn("JWT Token does not begin with Bearer String");
+			System.out.println("JWT Token does not begin with Bearer String");
 //			System.out.println("JWT Token does not begin with Bearer String");
+		}
+		
+		//테스트용 프린트 삭제필요
+		if(username != null) {
+			System.out.println("username != null");
 		}
 		
 		// Once we get the token validate it.
