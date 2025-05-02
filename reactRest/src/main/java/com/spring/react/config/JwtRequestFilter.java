@@ -81,7 +81,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 					requestUser = map.get("User");
 //					System.out.println(map);
 				} catch (Exception read_e) {
-//					System.out.println( "request body read error : " + read_e );
+					System.out.println( "requestRefreshtokenError : " + requestRefreshtoken );
 				}
 
 				//리프레시토큰 검사

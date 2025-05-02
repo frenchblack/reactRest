@@ -1,5 +1,8 @@
 package com.spring.react.controller.security;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +37,14 @@ public class JwtAuthenticationController {
 
 		return ResponseEntity.ok(userDetailsService.createToken(authenticationRequest));
 	}
+	
+	@RequestMapping(value = "/refresh", method = RequestMethod.POST)
+    public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
+        // 필터에서 이미 처리한 응답을 전달하는 역할
+        // 이 컨트롤러 자체는 로직을 수행하지 않고 필터가 응답을 작성하도록 위임
+
+        return ResponseEntity.ok().build(); 
+    }
 	
 	private void authenticate(String username, String password) throws Exception {
 		try {
