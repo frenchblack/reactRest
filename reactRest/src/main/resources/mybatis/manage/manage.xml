@@ -37,4 +37,23 @@
 		    FROM CTE A
 		   ORDER BY A.PATH
 	</select>
+	<insert id="insertMenu" parameterType="MenuVO">
+		INSERT INTO MENU(
+		   MENU_CD
+		 , P_CD
+		 , MENU_NM
+		 , MENU_LVL
+		 , S_ORD
+		 , USE_YN
+		 , ETC
+		) VALUES (
+		   #{menu_cd}
+		 , #{p_cd}
+		 , #{menu_nm}
+		 , #{menu_lvl}
+		 , #{s_ord}
+		 , #{use_yn}
+		 , #{etc}
+		)
+	</insert> 
 </mapper>

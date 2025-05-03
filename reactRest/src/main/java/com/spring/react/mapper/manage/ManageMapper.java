@@ -11,4 +11,5 @@ import com.spring.react.vo.MenuVO;
 @Mapper
 public interface ManageMapper {
 	List<MenuVO> getManageMenuList();
+	int insertMenu(MenuVO menuVO);
 }
