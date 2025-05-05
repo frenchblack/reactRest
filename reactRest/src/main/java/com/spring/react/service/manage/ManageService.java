@@ -30,4 +30,14 @@ public class ManageService {
 		return mapper.insertMenu(menuVO);
 	}
 
+	public int putMenu(MenuVO menuVO) {
+		// TODO Auto-generated method stub
+		return mapper.updateMenu(menuVO);
+	}
+
+	public int deleteMenu(MenuVO menuVO) {
+		// TODO Auto-generated method stub
+		return mapper.deleteMenu(menuVO);
+	}
+
 }

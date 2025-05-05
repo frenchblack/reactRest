@@ -56,4 +56,16 @@
 		 , #{etc}
 		)
 	</insert> 
+	<update id="updateMenu" parameterType="MenuVO">
+		UPDATE MENU
+		   SET MENU_NM = #{menu_nm}
+		     , S_ORD = #{s_ord}
+		     , USE_YN = #{use_yn}
+		     , ETC = #{etc}
+		 WHERE MENU_CD = #{menu_cd}
+	</update> 
+	<delete id="deleteMenu" parameterType="MenuVO">
+		DELETE FROM MENU
+		 WHERE MENU_CD = #{menu_cd}
+	</delete> 
 </mapper>
