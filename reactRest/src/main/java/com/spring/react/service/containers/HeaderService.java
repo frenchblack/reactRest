@@ -17,4 +17,9 @@ public class HeaderService {
 	public List<MenuVO> getMenuList() {
 		return mapper.getMenuList();
 	}
+
+	public List<MenuVO> getChildMenuList() {
+		// TODO Auto-generated method stub
+		return mapper.getChildMenuList();
+	}
 }

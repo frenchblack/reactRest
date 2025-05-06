@@ -2,11 +2,28 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.spring.react.mapper.containers.HeaderMapper">
 	<select id="getMenuList" resultType="MenuVO">
-		SELECT MENU_CD AS MENU_CD
-			  , P_CD AS P_CD
-			  , MENU_NM AS MENU_NM
-			  , MENU_LVL AS MENU_LVL
-		  FROM MENU
-		 ORDER BY MENU_CD
+		SELECT A.MENU_CD
+			 , A.P_CD
+			 , A.MENU_NM
+			 , A.MENU_LVL
+			 , A.S_ORD
+		  FROM menu A
+		 WHERE A.USE_YN = '1'
+		   AND A.MENU_LVL = '1'
+		 ORDER BY A.S_ORD
+		        , A.MENU_CD
+	</select>
+	<select id="getChildMenuList" resultType="MenuVO">
+		SELECT A.MENU_CD
+			  , A.P_CD
+			  , A.MENU_NM
+			  , A.MENU_LVL
+			  , A.S_ORD
+		  FROM menu A
+		 WHERE A.USE_YN = '1'
+		   AND A.MENU_LVL = '2'
+		 ORDER BY A.P_CD
+		 		  , A.S_ORD
+		 		  , A.MENU_CD;
 	</select>
 </mapper>

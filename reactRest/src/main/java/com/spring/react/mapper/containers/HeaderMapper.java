@@ -11,4 +11,6 @@ import com.spring.react.vo.MenuVO;
 @Mapper
 public interface HeaderMapper {
 	List<MenuVO> getMenuList();
+
+	List<MenuVO> getChildMenuList();
 }

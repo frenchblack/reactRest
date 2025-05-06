@@ -20,4 +20,8 @@ public class Header {
 	public List<MenuVO> getMenuList() {
 		return headerService.getMenuList();
 	}
+	@GetMapping("/getChildMenuList")
+	public List<MenuVO> getChildMenuList() {
+		return headerService.getChildMenuList();
+	}
 }
