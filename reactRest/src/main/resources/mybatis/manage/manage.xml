@@ -10,6 +10,7 @@
 				  , A.S_ORD
 				  , A.USE_YN
 				  , A.ETC
+				  , A.MENU_URL
 				  , CONCAT_WS('-', CONVERT(A.S_ORD, CHAR(100)), A.MENU_CD) AS PATH
 			  FROM MENU A
 			 WHERE A.MENU_LVL = '1'
@@ -23,6 +24,7 @@
 				  , B.S_ORD
 				  , B.USE_YN
 				  , B.ETC
+				  , B.MENU_URL
 				  , CONCAT_WS('-', C.PATH, B.S_ORD, B.MENU_CD) AS PATH
 			  FROM MENU B
 			 INNER JOIN CTE C 
@@ -34,6 +36,7 @@
 				 , A.S_ORD AS S_ORD
 				 , A.USE_YN AS USE_YN
 				 , A.ETC AS ETC
+				 , A.MENU_URL AS MENU_URL
 		    FROM CTE A
 		   ORDER BY A.PATH
 	</select>
@@ -46,6 +49,7 @@
 		 , S_ORD
 		 , USE_YN
 		 , ETC
+		 , MENU_URL
 		) VALUES (
 		   #{menu_cd}
 		 , #{p_cd}
@@ -54,6 +58,7 @@
 		 , #{s_ord}
 		 , #{use_yn}
 		 , #{etc}
+		 , #{menu_url}
 		)
 	</insert> 
 	<update id="updateMenu" parameterType="MenuVO">
@@ -62,6 +67,7 @@
 		     , S_ORD = #{s_ord}
 		     , USE_YN = #{use_yn}
 		     , ETC = #{etc}
+		     , MENU_URL = #{menu_url}
 		 WHERE MENU_CD = #{menu_cd}
 	</update> 
 	<delete id="deleteMenu" parameterType="MenuVO">

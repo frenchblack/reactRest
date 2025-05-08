@@ -7,6 +7,7 @@
 			 , A.MENU_NM
 			 , A.MENU_LVL
 			 , A.S_ORD
+			 , A.MENU_URL
 		  FROM menu A
 		 WHERE A.USE_YN = '1'
 		   AND A.MENU_LVL = '1'
@@ -19,6 +20,7 @@
 			  , A.MENU_NM
 			  , A.MENU_LVL
 			  , A.S_ORD
+			  , A.MENU_URL
 		  FROM menu A
 		 WHERE A.USE_YN = '1'
 		   AND A.MENU_LVL = '2'
