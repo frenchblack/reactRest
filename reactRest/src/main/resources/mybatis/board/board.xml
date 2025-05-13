@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.react.mapper.board.BoardMapper">
+	<select id="getBoardList" resultType="BoardVO">
+		SELECT A.BOARD_NO AS BOARD_NO
+			  , A.TITLE AS TITLE
+			  , A.CONTENT AS CONTENT
+			  , A.WRITER AS WRITER
+			  , A.WRITE_DATE AS WRITE_DATE
+			  , A.LIKE_CNT AS LIKE_CNT
+			  , A.VIEW_CNT AS VIEW_CNT
+			  , A.IS_DEL AS IS_DEL
+			  , A.CATEGORY_CD AS CATEGORY_CD
+			  , B.CATEGORY_NM AS CATEGORY_NM
+			  , A.MENU_CD AS MENU_CD
+		  FROM BOARD A
+		  LEFT OUTER JOIN CATEGORY B
+		    ON A.CATEGORY_CD = B.CATEGORY_CD
+		 ORDER BY A.WRITE_DATE DESC
+		 		  , A.BOARD_NO DESC
+	</select>
+</mapper>
