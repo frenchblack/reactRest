@@ -16,7 +16,22 @@
 		  FROM BOARD A
 		  LEFT OUTER JOIN CATEGORY B
 		    ON A.CATEGORY_CD = B.CATEGORY_CD
+		   WHERE A.IS_DEL = FALSE
+		  <if test="keyword != null and keyword != ''">
+		    <choose>
+		      <when test="type == 'title'">
+		        AND A.TITLE LIKE CONCAT('%', #{keyword}, '%')
+		      </when>
+		      <when test="type == 'writer'">
+		        AND A.WRITER LIKE CONCAT('%', #{keyword}, '%')
+		      </when>
+		      <when test="type == 'titleContent'">
+		        AND (A.TITLE LIKE CONCAT('%', #{keyword}, '%') OR A.CONTENT LIKE CONCAT('%', #{keyword}, '%'))
+		      </when>
+		    </choose>
+		  </if>   
 		 ORDER BY A.WRITE_DATE DESC
 		 		  , A.BOARD_NO DESC
+		 LIMIT #{size} OFFSET #{offset};
 	</select>
 </mapper>

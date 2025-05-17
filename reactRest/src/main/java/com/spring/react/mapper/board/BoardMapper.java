@@ -10,5 +10,5 @@ import com.spring.react.vo.BoardVO;
 @Repository
 @Mapper
 public interface BoardMapper {
-	List<BoardVO> getBoardList();
+	List<BoardVO> getBoardList(int offset, int size, String keyword, String type);
 }
