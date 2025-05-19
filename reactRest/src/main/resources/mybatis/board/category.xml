@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.react.mapper.board.CategoryMapper">
+	<select id="getCategories" resultType="categoryVO"> 
+		SELECT A.CATEGORY_CD AS CATEGORY_CD
+		     , A.P_CD AS P_CD
+		     , A.CATEGORY_NM AS CATEGORY_NM
+		  FROM CATEGORY A 
+		 WHERE A.MENU_CD = #{menu_cd}
+		   AND A.P_CD IS NULL
+	</select>
+	<select id="getSubCategories" resultType="categoryVO"> 
+		SELECT A.CATEGORY_CD AS CATEGORY_CD
+		     , A.P_CD AS P_CD
+		     , A.CATEGORY_NM AS CATEGORY_NM
+		  FROM category A
+		 WHERE A.P_CD = #{p_cd}
+	</select>
+</mapper>
