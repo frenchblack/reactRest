@@ -30,6 +30,16 @@
 		      </when>
 		    </choose>
 		  </if>   
+		  <if test="category != null and category != ''">
+		  	<choose>
+  				<when test="subCategory != null and subCategory != ''">
+		  			AND A.CATEGORY_CD = #{subCategory}
+		  		</when>
+		  		<otherwise>
+		  			AND B.P_CD = #{category}
+		  		</otherwise>
+		  	</choose>
+		  </if>
 		 ORDER BY A.WRITE_DATE DESC
 		 		  , A.BOARD_NO DESC
 		 LIMIT #{size} OFFSET #{offset};

@@ -22,7 +22,9 @@ public class Board {
 			, @RequestParam(defaultValue = "5") int maxNext
 			, @RequestParam(defaultValue = "10") int size
 			, @RequestParam(required = false) String keyword
-		    , @RequestParam(required = false) String type) {
-	    return boardService.getBoardList(page, maxNext, size, keyword, type);
+		    , @RequestParam(required = false) String type
+		    , @RequestParam(required = false) String category
+		    , @RequestParam(required = false) String subCategory) {
+	    return boardService.getBoardList(page, maxNext, size, keyword, type, category , subCategory);
 	}
 }
