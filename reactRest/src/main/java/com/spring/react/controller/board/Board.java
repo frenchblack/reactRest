@@ -24,7 +24,10 @@ public class Board {
 			, @RequestParam(required = false) String keyword
 		    , @RequestParam(required = false) String type
 		    , @RequestParam(required = false) String category
-		    , @RequestParam(required = false) String subCategory) {
-	    return boardService.getBoardList(page, maxNext, size, keyword, type, category , subCategory);
+		    , @RequestParam(required = false) String subCategory
+		    , @RequestParam(required = false) String sort
+		    , @RequestParam(required = false) String period
+		    , String menu_cd) {
+	    return boardService.getBoardList(page, maxNext, size, keyword, type, category , subCategory, menu_cd, sort, period);
 	}
 }

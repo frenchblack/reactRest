@@ -53,7 +53,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		int status = HttpStatus.UNAUTHORIZED.value();
 
 		// Authorization에 토큰이 존재하며 Bearer로 시작 시 토큰유효검사
-		if ((requestTokenHeader != null && !requestTokenHeader.equals(""))  && requestTokenHeader.startsWith("Bearer ")) {
+		if ((requestTokenHeader != null 
+				&& !requestTokenHeader.equals(""))  
+				&& requestTokenHeader.startsWith("Bearer ") 
+				&& !"Bearer undefined".equals(requestTokenHeader)
+				&& !"Bearer null".equals(requestTokenHeader)
+				) {
 			// "Bearer " 단어 삭제 
 			jwtToken = requestTokenHeader.substring(7);
 			try {

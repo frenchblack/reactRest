@@ -17,6 +17,7 @@
 		  LEFT OUTER JOIN CATEGORY B
 		    ON A.CATEGORY_CD = B.CATEGORY_CD
 		   WHERE A.IS_DEL = FALSE
+     		 AND A.MENU_CD =#{menu_cd}
 		  <if test="keyword != null and keyword != ''">
 		    <choose>
 		      <when test="type == 'title'">
@@ -40,8 +41,31 @@
 		  		</otherwise>
 		  	</choose>
 		  </if>
+		<if test="period != null and period != '' and period != ''">
+		  <choose>
+		    <when test="period == '1d'">
+		      AND A.WRITE_DATE >= NOW() - INTERVAL 1 DAY
+		    </when>
+		    <when test="period == '7d'">
+		      AND A.WRITE_DATE >= NOW() - INTERVAL 7 DAY
+		    </when>
+		    <when test="period == '1m'">
+		      AND A.WRITE_DATE >= NOW() - INTERVAL 1 MONTH
+		    </when>
+		  </choose>
+		</if>
+		<choose>
+		  <when test="sort == 'popular'">
+		 ORDER BY A.VIEW_CNT DESC
+		  </when>
+		  <when test="sort == 'vote'">
+		 ORDER BY A.LIKE_CNT DESC
+		  </when>
+		  <otherwise>
 		 ORDER BY A.WRITE_DATE DESC
 		 		  , A.BOARD_NO DESC
+		  </otherwise>
+		</choose>
 		 LIMIT #{size} OFFSET #{offset};
 	</select>
 </mapper>

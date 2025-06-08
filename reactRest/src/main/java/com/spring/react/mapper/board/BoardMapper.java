@@ -10,5 +10,5 @@ import com.spring.react.vo.BoardVO;
 @Repository
 @Mapper
 public interface BoardMapper {
-	List<BoardVO> getBoardList(int offset, int size, String keyword, String type, String category, String subCategory);
+	List<BoardVO> getBoardList(int offset, int size, String keyword, String type, String category, String subCategory, String menu_cd, String sort, String period);
 }

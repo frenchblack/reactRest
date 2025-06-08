@@ -15,14 +15,14 @@ public class BoardService {
 	@Autowired
 	public BoardMapper mapper;
 	
-	public Map<String, Object> getBoardList(int page,int maxNext, int size, String keyword, String type, String category, String subCategory) {
+	public Map<String, Object> getBoardList(int page,int maxNext, int size, String keyword, String type, String category, String subCategory, String menu_cd, String sort, String period) {
 		int offset = page * size;
-		List<BoardVO> list = mapper.getBoardList(offset, size, keyword, type, category , subCategory); 
+		List<BoardVO> list = mapper.getBoardList(offset, size, keyword, type, category , subCategory, menu_cd, sort, period); 
 
 	    int nextCount = 0;
 	    for (int i = 1; i <= maxNext; i++) {
 	        int nextOffset = (page + i) * size;
-	        List<BoardVO> temp = mapper.getBoardList(nextOffset, size, keyword, type, category , subCategory);
+	        List<BoardVO> temp = mapper.getBoardList(nextOffset, size, keyword, type, category , subCategory, menu_cd, sort, period);
 	        if (temp == null || temp.isEmpty()) break;
 	        nextCount++;
 	    }
