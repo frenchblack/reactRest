@@ -1,21 +1,27 @@
 package com.spring.react.controller.board;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.cors.CorsConfigurationSource;
 import com.spring.react.service.board.BoardService;
 import com.spring.react.vo.BoardVO;
 
 @RestController
 public class Board {
+
+    private final CorsConfigurationSource corsConfigurationSource;
 	@Autowired
 	public BoardService boardService;
+
+    Board(CorsConfigurationSource corsConfigurationSource) {
+        this.corsConfigurationSource = corsConfigurationSource;
+    }
 	
 	@GetMapping("/getBoardList")
 	public Map<String, Object> getBoardList(@RequestParam int page
@@ -29,5 +35,11 @@ public class Board {
 		    , @RequestParam(required = false) String period
 		    , String menu_cd) {
 	    return boardService.getBoardList(page, maxNext, size, keyword, type, category , subCategory, menu_cd, sort, period);
+	}
+	
+	@PostMapping("/postBoard")
+	public int postBoard(@RequestBody BoardVO boardVo) {
+		System.out.println("postBoard" + boardVo);
+		return boardService.postBoard(boardVo);
 	}
 }

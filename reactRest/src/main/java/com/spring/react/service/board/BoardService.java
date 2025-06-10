@@ -32,4 +32,9 @@ public class BoardService {
 	    result.put("nextCount", nextCount);
 	    return result;
 	}
+
+	public int postBoard(BoardVO boardVo) {
+		mapper.postBoard(boardVo);
+	    return boardVo.getBoard_no(); 
+	}
 }

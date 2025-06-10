@@ -57,9 +57,11 @@
 		<choose>
 		  <when test="sort == 'popular'">
 		 ORDER BY A.VIEW_CNT DESC
-		  </when>
+		 		, A.WRITE_DATE DESC
+	 	  </when>
 		  <when test="sort == 'vote'">
 		 ORDER BY A.LIKE_CNT DESC
+		        , A.WRITE_DATE DESC
 		  </when>
 		  <otherwise>
 		 ORDER BY A.WRITE_DATE DESC
@@ -68,4 +70,19 @@
 		</choose>
 		 LIMIT #{size} OFFSET #{offset};
 	</select>
+	<insert id="postBoard" parameterType="BoardVO" useGeneratedKeys="true" keyProperty="board_no">
+	  INSERT INTO BOARD (
+	    TITLE,
+	    CONTENT,
+	    WRITER,
+	    CATEGORY_CD,
+	    MENU_CD
+	  ) VALUES (
+	    #{title},
+	    #{content},
+	    #{writer},
+	    #{category_cd},
+	    #{menu_cd}
+	  )
+	</insert>
 </mapper>

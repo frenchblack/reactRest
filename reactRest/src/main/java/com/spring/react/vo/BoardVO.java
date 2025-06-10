@@ -2,8 +2,10 @@ package com.spring.react.vo;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter @Getter
+@ToString
 public class BoardVO {
 	public int board_no;
 	public String title;
@@ -16,4 +18,5 @@ public class BoardVO {
 	public String category_cd;
 	public String category_nm;
 	public String menu_cd;
+	
 }
