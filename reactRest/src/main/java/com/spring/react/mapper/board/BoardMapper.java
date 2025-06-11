@@ -13,4 +13,8 @@ public interface BoardMapper {
 	List<BoardVO> getBoardList(int offset, int size, String keyword, String type, String category, String subCategory, String menu_cd, String sort, String period);
 
 	int postBoard(BoardVO boardVo);
+
+	BoardVO viewBoard(int board_no);
+
+	int increaseViewCnt(int board_no);
 }

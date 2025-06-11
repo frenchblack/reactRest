@@ -11,6 +11,7 @@ public class BoardVO {
 	public String title;
 	public String content;
 	public String writer;
+	public String user_nm;
 	public String write_date;
 	public int like_cnt;
 	public int view_cnt;

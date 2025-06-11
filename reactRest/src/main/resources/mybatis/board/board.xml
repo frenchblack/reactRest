@@ -85,4 +85,28 @@
 	    #{menu_cd}
 	  )
 	</insert>
+	<select id="viewBoard" resultType="BoardVO">
+		SELECT A.BOARD_NO AS BOARD_NO
+			  , A.TITLE AS TITLE
+			  , A.CONTENT AS CONTENT
+			  , A.WRITER AS WRITER
+			  , B.USER_NM AS USER_NM
+			  , A.WRITE_DATE AS WRITE_DATE
+			  , A.LIKE_CNT AS LIKE_CNT
+			  , A.VIEW_CNT AS VIEW_CNT
+			  , A.CATEGORY_CD AS CATEGORY_CD
+			  , C.CATEGORY_NM AS CATEGORY_NM
+		  FROM BOARD A
+		  LEFT OUTER JOIN USERS B
+		    ON A.WRITER = B.USER_ID
+		 INNER JOIN CATEGORY C
+		    ON A.CATEGORY_CD = C.CATEGORY_CD
+		 WHERE A.IS_DEL = 0
+		   AND A.BOARD_NO = #{BOARD_NO}
+	</select>
+	<update id="increaseViewCnt" parameterType="BoardVO">
+		UPDATE BOARD A 
+		   SET A.VIEW_CNT = A.VIEW_CNT + 1
+		 WHERE A.BOARD_NO = #{board_no}
+	</update>
 </mapper>

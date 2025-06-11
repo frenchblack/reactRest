@@ -37,4 +37,12 @@ public class BoardService {
 		mapper.postBoard(boardVo);
 	    return boardVo.getBoard_no(); 
 	}
+
+	public BoardVO viewBoard(int board_no) {
+		return mapper.viewBoard(board_no);
+	}
+
+	public int increaseViewCnt(int board_no) {
+		return mapper.increaseViewCnt(board_no);
+	}
 }
