@@ -45,9 +45,8 @@ public class Board {
 	
 	@GetMapping("/viewBoard")
 	public BoardVO viewBoard(@RequestParam int board_no) {
-		BoardVO board_vo = boardService.viewBoard(board_no);
 		boardService.increaseViewCnt(board_no);
-		
+		BoardVO board_vo = boardService.viewBoard(board_no);
 	    return board_vo;
 	}
 	
