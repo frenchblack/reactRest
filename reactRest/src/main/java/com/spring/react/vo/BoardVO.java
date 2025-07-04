@@ -15,9 +15,12 @@ public class BoardVO {
 	public String write_date;
 	public int like_cnt;
 	public int view_cnt;
-	public boolean is_del;
+	public boolean ex_del;
+	public boolean ex_image;
+	public boolean ex_file;
 	public String category_cd;
 	public String category_nm;
 	public String menu_cd;
+	public String uuid;
 	
 }

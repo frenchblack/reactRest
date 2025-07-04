@@ -9,14 +9,16 @@
 			  , A.WRITE_DATE AS WRITE_DATE
 			  , A.LIKE_CNT AS LIKE_CNT
 			  , A.VIEW_CNT AS VIEW_CNT
-			  , A.IS_DEL AS IS_DEL
+			  , A.EX_DEL AS EX_DEL
 			  , A.CATEGORY_CD AS CATEGORY_CD
 			  , B.CATEGORY_NM AS CATEGORY_NM
 			  , A.MENU_CD AS MENU_CD
+			  , A.EX_IMAGE AS EX_IMAGE
+			  , A.EX_FILE AS EX_FILE
 		  FROM BOARD A
 		  LEFT OUTER JOIN CATEGORY B
 		    ON A.CATEGORY_CD = B.CATEGORY_CD
-		   WHERE A.IS_DEL = FALSE
+		   WHERE A.EX_DEL = FALSE
      		 AND A.MENU_CD =#{menu_cd}
 		  <if test="keyword != null and keyword != ''">
 		    <choose>
@@ -77,12 +79,16 @@
 	    WRITER,
 	    CATEGORY_CD,
 	    MENU_CD
+	  , EX_IMAGE
+	  , EX_FILE
 	  ) VALUES (
 	    #{title},
 	    #{content},
 	    #{writer},
 	    #{category_cd},
 	    #{menu_cd}
+	  , #{ex_image}
+	  , #{ex_file}
 	  )
 	</insert>
 	<select id="viewBoard" resultType="BoardVO">
@@ -101,12 +107,17 @@
 		    ON A.WRITER = B.USER_ID
 		 INNER JOIN CATEGORY C
 		    ON A.CATEGORY_CD = C.CATEGORY_CD
-		 WHERE A.IS_DEL = 0
+		 WHERE A.EX_DEL = 0
 		   AND A.BOARD_NO = #{BOARD_NO}
 	</select>
 	<update id="increaseViewCnt" parameterType="BoardVO">
 		UPDATE BOARD A 
 		   SET A.VIEW_CNT = A.VIEW_CNT + 1
+		 WHERE A.BOARD_NO = #{board_no}
+	</update>
+	<update id="updateContent" parameterType="BoardVO">
+		UPDATE BOARD A 
+		   SET A.CONTENT = #{content}
 		 WHERE A.BOARD_NO = #{board_no}
 	</update>
 </mapper>

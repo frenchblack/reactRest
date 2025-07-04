@@ -17,4 +17,6 @@ public interface BoardMapper {
 	BoardVO viewBoard(int board_no);
 
 	int increaseViewCnt(int board_no);
+
+	void updateContent(int board_no, String content);
 }

@@ -1,28 +1,27 @@
 package com.spring.react.controller.board;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.spring.react.service.board.BoardService;
 import com.spring.react.vo.BoardVO;
 
 @RestController
 public class Board {
-
-    private final CorsConfigurationSource corsConfigurationSource;
 	@Autowired
 	public BoardService boardService;
 
-    Board(CorsConfigurationSource corsConfigurationSource) {
-        this.corsConfigurationSource = corsConfigurationSource;
-    }
-	
 	@GetMapping("/getBoardList")
 	public Map<String, Object> getBoardList(@RequestParam int page
 			, @RequestParam(defaultValue = "5") int maxNext
@@ -39,8 +38,9 @@ public class Board {
 	
 	@PostMapping("/postBoard")
 	public int postBoard(@RequestBody BoardVO boardVo) {
-		System.out.println("postBoard" + boardVo);
-		return boardService.postBoard(boardVo);
+		System.out.println("?????");
+		int boaordNo = boardService.postBoard(boardVo);
+		return boaordNo;
 	}
 	
 	@GetMapping("/viewBoard")
@@ -49,5 +49,13 @@ public class Board {
 		BoardVO board_vo = boardService.viewBoard(board_no);
 	    return board_vo;
 	}
+	
+    @PatchMapping("/boadUpload/temp/{uuid}")
+    public Map<String, Object> uploadTempFile(@PathVariable String uuid, @RequestParam("file") MultipartFile file) {
+        String savedPath = boardService.saveTempFile(uuid, file);
+        Map<String, Object> result = new HashMap<>();
+        result.put("url", savedPath);
+        return result;
+    }
 	
 }
