@@ -102,6 +102,8 @@
 			  , A.VIEW_CNT AS VIEW_CNT
 			  , A.CATEGORY_CD AS CATEGORY_CD
 			  , C.CATEGORY_NM AS CATEGORY_NM
+			  , A.EX_IMAGE AS EX_IMAGE
+			  , A.EX_FILE AS EX_FILE
 		  FROM BOARD A
 		  LEFT OUTER JOIN USERS B
 		    ON A.WRITER = B.USER_ID
@@ -120,4 +122,40 @@
 		   SET A.CONTENT = #{content}
 		 WHERE A.BOARD_NO = #{board_no}
 	</update>
+	<insert id="saveFileMuti">
+	    INSERT INTO BOARD_FILE (
+	        BOARD_NO
+	      , ORIGIN_NM
+	      , SAVED_NM
+	      , FILE_PATH
+	      , FILE_SIZE
+	      , FILE_TYPE
+	    )
+	    VALUES
+	    <foreach collection="fileList" item="file" separator=",">
+	        (
+	            #{file.board_no}
+	          , #{file.origin_nm}
+	          , #{file.saved_nm}
+	          , #{file.file_path}
+	          , #{file.file_size}
+	          , #{file.file_type}
+	        )
+	    </foreach>
+	</insert>
+	<select id="getFileList" resultType="FileVO">
+	    SELECT 
+	         A.FILE_ID      AS FILE_ID
+	       , A.BOARD_NO     AS BOARD_NO
+	       , A.ORIGIN_NM    AS ORIGIN_NM
+	       , A.SAVED_NM     AS SAVED_NM
+	       , A.FILE_PATH    AS FILE_PATH
+	       , A.FILE_SIZE    AS FILE_SIZE
+	       , A.FILE_TYPE    AS FILE_TYPE
+	       , A.INSERT_DATE  AS INSERT_DATE
+	    FROM 
+	         BOARD_FILE A
+	    WHERE 
+	         A.BOARD_NO = #{board_no}
+	</select>
 </mapper>

@@ -3,9 +3,11 @@ package com.spring.react.mapper.board;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import com.spring.react.vo.BoardVO;
+import com.spring.react.vo.FileVO;
 
 @Repository
 @Mapper
@@ -18,5 +20,9 @@ public interface BoardMapper {
 
 	int increaseViewCnt(int board_no);
 
-	void updateContent(int board_no, String content);
+	int updateContent(int board_no, String content);
+
+	int saveFileMuti(@Param("fileList") List<FileVO> fileVo);
+
+	List<FileVO> getFileList(int board_no);
 }
