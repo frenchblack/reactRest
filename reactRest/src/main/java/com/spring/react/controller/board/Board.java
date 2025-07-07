@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,16 +58,37 @@ public class Board {
 	@PostMapping("/postBoard")
 	public int postBoard( @RequestPart("data") BoardVO boardVo
 						, @RequestPart(value = "files", required = false) List<MultipartFile> files) {
-	    System.out.println("📥 제목: {}" + boardVo.getTitle());
-	    System.out.println("📥 파일 수: {}" + (files != null ? files.size() : 0));
 		int boaordNo = boardService.postBoard(boardVo, files);
 		return boaordNo;
 	}
+	
+	@PutMapping("/updateBoard")
+	public int updateBoard( @RequestPart("data") BoardVO boardVo
+						  , @RequestPart(value = "files", required = false) List<MultipartFile> files
+						  , @RequestPart(value = "deleteFiles", required = false) List<Integer> delList) {
+	    System.out.println("📥 제목: {}" + boardVo.getTitle());
+	    System.out.println("📥 파일 수: {}" + (files != null ? files.size() : 0));
+	    System.out.println("📥 삭제파일 수: {}" + (delList != null ? delList.size() : 0));
+//		int boaordNo = boardService.postBoard(boardVo, files);
+		return 0;
+	}	
 	
 	@GetMapping("/viewBoard")
 	public Map<String, Object> viewBoard(@RequestParam int board_no) {
 		Map<String, Object>result = new HashMap<>();
 		boardService.increaseViewCnt(board_no);
+		BoardVO board_vo = boardService.viewBoard(board_no);
+		List<FileVO> fileList = boardService.getFileList(board_no);
+		result.put("board", board_vo);
+		result.put("file", fileList);
+		
+	    return result;
+	}
+	
+	//조회수 증가하지 않는 조회
+	@GetMapping("/getBoradDtail")
+	public Map<String, Object> getBoradDtail(@RequestParam int board_no) {
+		Map<String, Object>result = new HashMap<>();
 		BoardVO board_vo = boardService.viewBoard(board_no);
 		List<FileVO> fileList = boardService.getFileList(board_no);
 		result.put("board", board_vo);
