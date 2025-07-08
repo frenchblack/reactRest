@@ -9,8 +9,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,9 +20,12 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.multipart.MultipartFile;
 import com.spring.react.config.JwtTokenUtil;
+import com.spring.react.config.WebConfig;
+import com.spring.react.controller.util.Util;
 import com.spring.react.mapper.board.BoardMapper;
 import com.spring.react.vo.BoardVO;
 import com.spring.react.vo.FileVO;
@@ -28,24 +33,24 @@ import com.spring.react.vo.FileVO;
 @Service
 public class BoardService {
 
-    private final JwtTokenUtil jwtTokenUtil;
-
     @Value("${file.root-dir}")
     private String rootDir;
 	
-    private final CorsConfigurationSource corsConfigurationSource;
     private final String TEMP_DIR = "/images/temp/";
     private final String FINAL_DIR = "/images/board/";
     private final String FILE_DIR = "/file/board/";
+    private final String IMAGE_PATTERN = "<img[^>]+src=[\"']((?:https?:\\/\\/[^\"'>]+)?\\/images\\/[^\"'>]+)[\"']";
 	
 	@Autowired
 	public BoardMapper mapper;
-
-    BoardService(CorsConfigurationSource corsConfigurationSource, JwtTokenUtil jwtTokenUtil) {
-        this.corsConfigurationSource = corsConfigurationSource;
-        this.jwtTokenUtil = jwtTokenUtil;
-    }
 	
+    
+    //=============================================================================================================================
+    //=============================================================================================================================
+    // BOARD_CRUD
+    //=============================================================================================================================
+    //=============================================================================================================================
+    
     //게시판 목록 조회
 	public Map<String, Object> getBoardList(int page,int maxNext, int size, String keyword, String type, String category, String subCategory, String menu_cd, String sort, String period) {
 		int offset = page * size;
@@ -85,34 +90,101 @@ public class BoardService {
 	    return boardVo.getBoard_no();
 	}
 
+	//board 상세 조회로직
+	public Map<String, Object> getDetailBoardItems(@RequestParam int board_no){
+		Map<String, Object>result = new HashMap<>();
+		BoardVO board_vo = viewBoard(board_no);
+		List<FileVO> fileList = getFileList(board_no);
+		result.put("board", board_vo);
+		result.put("file", fileList);
+		
+	    return result;
+	}
+	
 	//상세보기
 	public BoardVO viewBoard(int board_no) {
 		return mapper.viewBoard(board_no);
 	}
 	
-	//조회수 ++
-	public int increaseViewCnt(int board_no) {
-		return mapper.increaseViewCnt(board_no);
+    //게시판 conetent 수정
+    public int updateContent(BoardVO boardVo) {
+        return mapper.updateContent(boardVo.getBoard_no(), boardVo.getContent());
+    }
+
+    //게시판 upadate
+	public int updateBoard(BoardVO boardVo, List<MultipartFile> files, List<FileVO> delFileList) {
+		boardVo.setEx_image(is_image(boardVo.getContent()));
+		boardVo.setEx_file(is_file(boardVo.getBoard_no(), (files != null) ? files.size() : 0, (delFileList != null) ? delFileList.size() : 0));
+		
+		mapper.updateBoard(boardVo);
+		
+		deleteFileFromDisk(delFileList);
+		deleteNotUsedImage(boardVo.getBoard_no(), boardVo.getContent());
+		
+		//image path change
+		if(replaceTempPath(boardVo))updateContent(boardVo);
+		
+		//파일저장.
+		if(boardVo.isEx_file()) saveFileMuti(saveFileToDisk(files, boardVo.getBoard_no()));
+		
+		return boardVo.getBoard_no();
 	}
 
-	//이미지 여부 확인
-	public boolean is_image(String content) {
-	    if (content == null || content.isEmpty()) return false;
-	    
-	    Pattern pattern = Pattern.compile("<img[^>]+src=[\"'][^\"'>]*\\/images\\/[^\"'>]+[\"']", Pattern.CASE_INSENSITIVE);
-	    Matcher matcher = pattern.matcher(content);
-	    
-	    return matcher.find();
+	public int deleteBoard(int board_no) {
+		return mapper.deleteBoard(board_no);
 	}
 	
-	//파일 여부 확인
-	public boolean is_file(String content) {
-	    if (content == null || content.isEmpty()) return false;
-	    
-	    return false;
+	//=============================================================================================================================
+	//=============================================================================================================================
+	// 파일처리 CRUD
+	//=============================================================================================================================
+	//=============================================================================================================================
+	//파일 삭제
+	public void deleteFileFromDisk(List<FileVO> delFileList) {
+	    if (delFileList != null && !delFileList.isEmpty()) {
+	        for (FileVO file : delFileList) {
+	        	deleteFile(file.getFile_id());
+	            String filePath = file.getFile_path();
+	            if (filePath != null) new File(rootDir + "/upload" + filePath).delete();
+	        }
+	    }
 	}
 	
+	//db에서 파일 삭제
+	public void deleteFile(int file_id) {
+		mapper.deleteFile(file_id);
+	}
+	
+	//사용하지 않는 이미지 삭제
+	public void deleteNotUsedImage(int boardId, String contentHtml) {
+	    // 1. 본문에서 사용 중인 이미지 경로 추출 (절대경로 형태로 반환됨)
+	    Set<String> usedImagePaths = extractImageSrcs(contentHtml);
 
+	    // 2. 해당 게시글의 이미지가 저장된 실제 경로
+	    Path boardImageDir = Paths.get(rootDir, "upload", "images", "board", String.valueOf(boardId));
+
+	    File[] files = boardImageDir.toFile().listFiles();
+	    if (files == null) {
+	    	System.out.println("존재하는 이미지가 없습니다.");
+	    	return;
+	    } else {
+	    	System.out.println("usedImagePaths : " + usedImagePaths);
+	    }
+
+	    for (File file : files) {
+	        String filePath = file.getAbsolutePath();
+	        System.out.println("file.getAbsolutePath() : " + file.getAbsolutePath());
+	        // 3. 사용되지 않은 이미지면 삭제
+	        if (!usedImagePaths.contains(filePath)) {
+	            file.delete();
+	        }
+	    }
+	    
+	    if (boardImageDir.toFile().listFiles().length == 0) {
+	        boardImageDir.toFile().delete();
+	    }
+	}
+	
 	//글작성 중 파일 임시 저장.
 	public String saveTempFile(String uuid, MultipartFile file) {
         String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
@@ -161,11 +233,6 @@ public class BoardService {
         
         return true;
     }
-
-    //게시판 conetent 수정
-    public int updateContent(BoardVO boardVo) {
-        return mapper.updateContent(boardVo.getBoard_no(), boardVo.getContent());
-    }
     
     //파일 물리적 저장 
     public List<FileVO> saveFileToDisk(List<MultipartFile> files, int board_no) {
@@ -211,12 +278,80 @@ public class BoardService {
         }
         return fileList;
     }
+    
+    //파일리스트 한번에 저장
     public int saveFileMuti(List<FileVO> fileVo) {
     	if(fileVo == null) return 0;
     	return mapper.saveFileMuti(fileVo);
     }
 
+    //db에서 파일목록 조회
 	public List<FileVO> getFileList(int board_no) {
 		return mapper.getFileList(board_no);
 	}
+
+	//=============================================================================================================================
+	//=============================================================================================================================
+	// 기타 함수
+	//=============================================================================================================================
+	//=============================================================================================================================
+	//이미지 여부 확인
+	public boolean is_image(String content) {
+	    if (content == null || content.isEmpty()) return false;
+	    
+	    Pattern pattern = Pattern.compile(IMAGE_PATTERN, Pattern.CASE_INSENSITIVE);
+	    Matcher matcher = pattern.matcher(content);
+	    
+	    return matcher.find();
+	}
+	
+	//파일 여부 확인
+	public boolean is_file(int board_no, int fileCnt, int delFileCnt) {
+		boolean result = false;
+		int currentFileCnt = getFileCnt(board_no);
+
+		if((currentFileCnt + fileCnt) - delFileCnt > 0 ) result = true;
+	    return result;
+	}
+	
+	//본문에서 이미지 추출
+	public Set<String> extractImageSrcs(String html) {
+	    Set<String> srcSet = new HashSet<>();
+	    Matcher matcher = Pattern.compile(IMAGE_PATTERN).matcher(html);
+	    while (matcher.find()) {
+	        String src = matcher.group(1);
+
+	        String absolutePath = convertToAbsolutePath(src); // 구현 필요
+	        srcSet.add(absolutePath);
+	    }
+	    return srcSet;
+	}
+	
+	//이미지 경로 변환
+	public String convertToAbsolutePath(String webPath) {
+		String imageRelativePath = webPath.replaceFirst("^https?://[^/]+", ""); // 도메인 제거	
+		return Paths.get(rootDir, "/upload", imageRelativePath).toString();
+	}
+	
+	//게시글 내 파일 갯수 반환
+	public int getFileCnt(int board_no) {
+		return mapper.getFileCnt(board_no);
+	}
+	
+	//조회수 ++
+	public int increaseViewCnt(int board_no) {
+		return mapper.increaseViewCnt(board_no);
+	}
+	
+	//글 작성자와 토큰의 유저가 같은 유저인지 확인.
+	public boolean isWriter(int board_no, String user_id) {
+		String writer = mapper.getWriter(board_no);
+		boolean result = false;
+		if (writer == null) return result;
+		
+		if( writer != null && user_id != null && writer.equals(user_id)) result = true;
+		
+		return result;
+	}
+
 }

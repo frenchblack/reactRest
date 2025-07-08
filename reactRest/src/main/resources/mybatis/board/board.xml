@@ -158,4 +158,34 @@
 	    WHERE 
 	         A.BOARD_NO = #{board_no}
 	</select>
+	<update id="updateBoard" parameterType="BoardVO">
+	    UPDATE BOARD
+	    SET
+	          TITLE        = #{title}
+	        , CONTENT      = #{content}
+	        , CATEGORY_CD  = #{category_cd}
+	        , EX_FILE      = #{ex_file}
+	        , EX_IMAGE     = #{ex_image}
+	    WHERE BOARD_NO = #{board_no}
+	</update>
+	<select id="getFileCnt" resultType="int">
+	    SELECT COUNT(*) 
+	      FROM BOARD_FILE A 
+	     WHERE A.BOARD_NO = #{board_no}
+	</select>
+	<delete id="deleteFile" parameterType="int">
+	    DELETE 
+	      FROM BOARD_FILE
+	     WHERE FILE_ID = #{file_id}
+	</delete>
+	<update id="deleteBoard" parameterType="int">
+		UPDATE BOARD
+		   SET EX_DEL = '1'
+		 WHERE BOARD_NO = #{board_no};
+	</update>
+	<select id="getWriter" resultType="String" parameterType="int">
+		SELECT A.WRITER AS WRITER
+		  FROM BOARD A
+		 WHERE A.BOARD_NO = #{board_no}
+	</select>
 </mapper>

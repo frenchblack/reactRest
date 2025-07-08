@@ -25,4 +25,15 @@ public interface BoardMapper {
 	int saveFileMuti(@Param("fileList") List<FileVO> fileVo);
 
 	List<FileVO> getFileList(int board_no);
+
+	int updateBoard(BoardVO boardVo);
+
+	int getFileCnt(@Param("board_no")int board_no);
+
+	int deleteFile(@Param("file_id") int file_id);
+
+	int deleteBoard(@Param("board_no") int board_no);
+
+	String getWriter(@Param("board_no") int board_no);
+
 }

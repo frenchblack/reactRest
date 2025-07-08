@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Setter @Getter
 public class FileVO {
-    private Long file_id;
+    private int file_id;
     private int board_no;
     private String origin_nm;
     private String saved_nm;
