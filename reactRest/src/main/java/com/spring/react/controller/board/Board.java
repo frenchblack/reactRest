@@ -96,7 +96,7 @@ public class Board {
 	    System.out.println("📥 Token user getUsername : " + user.getUsername());
 	    
 	    //작성자 일치여부 확인.
-	    if (!boardService.isWriter(boardVo.getBoard_no(), user.getUsername())) {
+	    if (!boardService.isWriter(boardVo.getBoard_no(), (user == null) ? null : user.getUsername())) {
 	    	return -1;
 	    }
 	    

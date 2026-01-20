@@ -1,27 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.spring.react.mapper.board.CommentMapper">
-	<select id="getCommentList" resultType="CommentVO"> 
+	<select id="getCommentList" resultType="com.spring.react.vo.CommentVO"> 
 		SELECT A.COMMENT_NO AS COMMENT_NO
 		     , A.BOARD_NO AS BOARD_NO
 		     , A.USER_ID AS USER_ID
 		     , B.USER_NM AS USER_NM
-		     , A.COMMENT_CONTENT AS COMMENT_CONTENT
 		     , A.WRITE_DATE AS WRITE_DATE
+		     , CASE
+		           WHEN A.EX_DEL = 1 THEN '삭제된 댓글입니다.'
+		           ELSE A.COMMENT_CONTENT
+		       END AS COMMENT_CONTENT
 		     , A.EX_DEL AS EX_DEL
 		     , A.LIKE_CNT AS LIKE_CNT
 		     , A.COMMENT_LVL AS COMMENT_LVL
+		     , A.P_COMMENT_NO AS P_COMMENT_NO
 		     , ( SELECT COUNT(1)
-				   FROM comment C
-				  WHERE C.P_COMMENT_NO = A.COMMENT_NO
-				    AND C.EX_DEL = 0) AS C_COMMENT_CNT
-		  FROM comment A
-		 INNER JOIN users B
+		           FROM COMMENT C
+		          WHERE C.P_COMMENT_NO = A.COMMENT_NO
+		            AND C.COMMENT_LVL = 1
+		            AND C.EX_DEL = 0
+		       ) AS C_COMMENT_CNT
+		     , CASE
+		           WHEN #{viewer_user_id} IS NULL THEN 0
+		           WHEN EXISTS (
+		                SELECT 1
+		                  FROM COMMENT_LIKE D
+		                 WHERE D.COMMENT_NO = A.COMMENT_NO
+		                   AND D.USER_ID = #{viewer_user_id}
+		                   AND D.REACTION_CD = 1
+		           ) THEN 1
+		           ELSE 0
+		       END AS MY_LIKE_YN
+		     , CASE
+		           WHEN #{viewer_user_id} IS NULL THEN 0
+		           WHEN A.USER_ID = #{viewer_user_id} THEN 1
+		           ELSE 0
+		       END AS OWNER_YN
+		  FROM COMMENT A
+		 INNER JOIN USERS B
 		    ON A.USER_ID = B.USER_ID
-		 WHERE A.EX_DEL = 0
+		 WHERE A.BOARD_NO = #{board_no}
 		   AND A.COMMENT_LVL = 0
-		   AND A.BOARD_NO = #{board_no}
-		 ORDER BY A.WRITE_DATE
-		        , A.COMMENT_NO
+		 ORDER BY A.WRITE_DATE DESC
+		        , A.COMMENT_NO DESC
+		 LIMIT #{size}
+		 OFFSET #{offset}
+	</select>
+	<select id="getCommentTotalCnt" resultType="int">
+		SELECT COUNT(1) AS TOTAL_CNT
+		  FROM COMMENT A
+		 WHERE A.BOARD_NO = #{board_no}
+		   AND A.COMMENT_LVL = 0
+	</select>
+	<select id="getWriter" resultType="int">
+		SELECT COUNT(1) AS WRITER
+		  FROM COMMENT A
+		 WHERE A.COMMENT_NO = #{comment_no}
+		   AND A.USER_ID    = #{user_id}
 	</select>
 </mapper>

@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Setter @Getter
 public class CommentVO {
-	public int commment_no;
+	public int comment_no;
 	public int board_no;
 	public String user_id;
 	public String user_nm;
@@ -15,6 +15,8 @@ public class CommentVO {
 	public boolean ex_del;
 	public int like_cnt;
 	public int comment_lvl;
-	public String p_comment_no;
+	public int p_comment_no;
 	public int c_comment_cnt;
+	public int my_like_yn;
+	public int owner_yn;
 }

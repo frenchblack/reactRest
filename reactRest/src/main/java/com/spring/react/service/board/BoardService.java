@@ -21,12 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.multipart.MultipartFile;
-import com.spring.react.config.JwtTokenUtil;
-import com.spring.react.config.WebConfig;
-import com.spring.react.controller.util.Util;
+
 import com.spring.react.mapper.board.BoardMapper;
+import com.spring.react.service.common.OwnershipService;
 import com.spring.react.vo.BoardVO;
 import com.spring.react.vo.FileVO;
 
@@ -44,6 +42,8 @@ public class BoardService {
 	@Autowired
 	public BoardMapper mapper;
 	
+	@Autowired
+	private OwnershipService ownershipService;
     
     //=============================================================================================================================
     //=============================================================================================================================
@@ -345,13 +345,7 @@ public class BoardService {
 	
 	//글 작성자와 토큰의 유저가 같은 유저인지 확인.
 	public boolean isWriter(int board_no, String user_id) {
-		String writer = mapper.getWriter(board_no);
-		boolean result = false;
-		if (writer == null) return result;
-		
-		if( writer != null && user_id != null && writer.equals(user_id)) result = true;
-		
-		return result;
+		return ownershipService.isBoardOwner(board_no, user_id);
 	}
 
 }
