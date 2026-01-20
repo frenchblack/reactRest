@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.spring.react.mapper.board.CommentMapper">
-	<select id="getCommentList" resultType="com.spring.react.vo.CommentVO"> 
+	<select id="getCommentList" resultType="com.spring.react.vo.comment.CommentVO"> 
 		SELECT A.COMMENT_NO AS COMMENT_NO
 		     , A.BOARD_NO AS BOARD_NO
 		     , A.USER_ID AS USER_ID
@@ -42,11 +42,51 @@
 		    ON A.USER_ID = B.USER_ID
 		 WHERE A.BOARD_NO = #{board_no}
 		   AND A.COMMENT_LVL = 0
-		 ORDER BY A.WRITE_DATE DESC
-		        , A.COMMENT_NO DESC
+		 ORDER BY A.WRITE_DATE
+		        , A.COMMENT_NO
 		 LIMIT #{size}
 		 OFFSET #{offset}
 	</select>
+	<insert id="insertComment" parameterType="com.spring.react.vo.comment.CommentVO" useGeneratedKeys="true" keyProperty="comment_no">
+		INSERT INTO COMMENT (
+		         BOARD_NO
+		       , USER_ID
+		       , COMMENT_CONTENT
+		       , WRITE_DATE
+		       , EX_DEL
+		       , LIKE_CNT
+		       , COMMENT_LVL
+		  )
+		  VALUES (
+		         #{board_no}
+		       , #{user_id}
+		       , #{comment_content}
+		       , NOW()
+		       , 0
+		       , 0
+		       , 0
+		  )
+		  <selectKey keyProperty="comment_no" resultType="int" order="AFTER">
+		    SELECT LAST_INSERT_ID()
+		  </selectKey>
+	</insert>
+	
+	<update id="updateCommentContent">
+	  UPDATE COMMENT A
+	     SET A.COMMENT_CONTENT = #{comment_content}
+	   WHERE A.COMMENT_NO = #{comment_no}
+	     AND A.USER_ID    = #{user_id}
+	     AND A.EX_DEL     = 0
+	</update>
+	
+	<update id="deleteComment">
+	  UPDATE COMMENT A
+	     SET A.EX_DEL = 1
+	   WHERE A.COMMENT_NO = #{comment_no}
+	     AND A.USER_ID    = #{user_id}
+	     AND A.EX_DEL     = 0
+	</update>
+	
 	<select id="getCommentTotalCnt" resultType="int">
 		SELECT COUNT(1) AS TOTAL_CNT
 		  FROM COMMENT A
@@ -58,5 +98,44 @@
 		  FROM COMMENT A
 		 WHERE A.COMMENT_NO = #{comment_no}
 		   AND A.USER_ID    = #{user_id}
+	</select>	
+	<select id="getReactionCd" resultType="int">
+	  SELECT A.REACTION_CD AS REACTION_CD
+	    FROM COMMENT_LIKE A
+	   WHERE A.COMMENT_NO = #{comment_no}
+	     AND A.USER_ID    = #{user_id}
+	</select>
+	
+	<insert id="upsertReaction">
+	  INSERT INTO COMMENT_LIKE (
+	        COMMENT_NO
+	      , USER_ID
+	      , REACTION_CD
+	  ) VALUES (
+	        #{comment_no}
+	      , #{user_id}
+	      , #{reaction_cd}
+	  )
+	  ON DUPLICATE KEY UPDATE
+	        REACTION_CD = #{reaction_cd}
+	</insert>
+	
+	<delete id="deleteReaction">
+	  DELETE
+	    FROM COMMENT_LIKE A
+	   WHERE A.COMMENT_NO = #{comment_no}
+	     AND A.USER_ID    = #{user_id}
+	</delete>
+	
+	<update id="updateLikeCnt">
+	  UPDATE COMMENT A
+	     SET A.LIKE_CNT = A.LIKE_CNT + #{delta}
+	   WHERE A.COMMENT_NO = #{comment_no}
+	</update>
+	
+	<select id="getLikeCnt" resultType="int">
+	  SELECT A.LIKE_CNT AS LIKE_CNT
+	    FROM COMMENT A
+	   WHERE A.COMMENT_NO = #{comment_no}
 	</select>
 </mapper>

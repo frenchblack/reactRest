@@ -1,4 +1,4 @@
-package com.spring.react.vo;
+package com.spring.react.vo.comment;
 
 import lombok.Getter;
 import lombok.Setter;

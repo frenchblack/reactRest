@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
-import com.spring.react.vo.CommentVO;
+import com.spring.react.vo.comment.CommentVO;
 
 @Repository
 @Mapper
@@ -26,4 +26,40 @@ public interface CommentMapper {
             @Param("comment_no") int comment_no
           , @Param("user_id") String user_id
       );
+    
+    Integer getReactionCd(
+    	      @Param("comment_no") int comment_no
+    	    , @Param("user_id") String user_id
+    	);
+
+	int upsertReaction(
+	      @Param("comment_no") int comment_no
+	    , @Param("user_id") String user_id
+	    , @Param("reaction_cd") int reaction_cd
+	);
+
+	int deleteReaction(
+	      @Param("comment_no") int comment_no
+	    , @Param("user_id") String user_id
+	);
+
+	int updateLikeCnt(
+	      @Param("comment_no") int comment_no
+	    , @Param("delta") int delta
+	);
+
+	int getLikeCnt(@Param("comment_no") int comment_no);
+	
+	int insertComment(CommentVO vo);
+
+	int updateCommentContent(
+	      @Param("comment_no") int comment_no
+	    , @Param("comment_content") String comment_content
+	    , @Param("user_id") String user_id
+	);
+
+	int deleteComment(
+	      @Param("comment_no") int comment_no
+	    , @Param("user_id") String user_id
+	);
 }
