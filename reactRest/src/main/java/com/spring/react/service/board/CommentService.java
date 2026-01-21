@@ -12,6 +12,7 @@ import com.spring.react.vo.comment.CommentListResponseVO;
 import com.spring.react.vo.comment.CommentPagingVO;
 import com.spring.react.vo.comment.CommentReactionResponseVO;
 import com.spring.react.vo.comment.CommentVO;
+import com.spring.react.vo.comment.ReplyListResponseVO;
 
 @Service
 public class CommentService {
@@ -46,7 +47,7 @@ public class CommentService {
     }
 	
 	@Transactional
-	public int writeComment(int board_no, String comment_content, String user_id) {
+	public int writeComment(int board_no, String comment_content, Integer p_comment_no, String user_id) {
 
 	    if (user_id == null || user_id.trim().isEmpty()) {
 	        throw new RuntimeException("로그인이 필요합니다.");
@@ -56,19 +57,24 @@ public class CommentService {
 	        throw new RuntimeException("댓글을 입력하세요.");
 	    }
 
+	    Integer parent_no = (p_comment_no == null) ? null : p_comment_no.intValue();
+
 	    CommentVO vo = new CommentVO();
 	    vo.board_no = board_no;
 	    vo.user_id = user_id;
 	    vo.comment_content = comment_content.trim();
 
-	    // ✅ 부모댓글 고정
-	    vo.comment_lvl = 0;
-	    vo.p_comment_no = 0;
+	    // ✅ 부모면 0, 대댓글이면 1
+	    vo.comment_lvl = (parent_no == null) ? 0 : 1;
+	    vo.p_comment_no = parent_no;
 
-	    // 아래 insert는 "comment_no를 확실히" 돌려받게 구성해야 함
+	    // ✅ (선택) 대댓글인데 부모댓글 존재/레벨0인지 검증하고 싶으면 여기서 체크 쿼리 추가
+	    // ex) mapper.existsParentComment(board_no, parent_no)
+
 	    int comment_no = mapper.insertComment(vo);
 	    return comment_no;
 	}
+
 
 	@Transactional
 	public void updateComment(int comment_no, String comment_content, String user_id) {
@@ -140,6 +146,31 @@ public class CommentService {
 
 	    return res;
 	}
+	
+	public ReplyListResponseVO getReplyList(int board_no, int p_comment_no, int page, int size, String viewer_user_id) {
+
+	    if (page <= 0) page = 1;
+	    if (size <= 0) size = 10;
+
+	    int total_cnt = mapper.getReplyTotalCnt(board_no, p_comment_no);
+	    int total_page = (int) Math.ceil((double) total_cnt / (double) size);
+	    int offset = (page - 1) * size;
+
+	    List<CommentVO> list = mapper.getReplyList(board_no, p_comment_no, size, offset, viewer_user_id);
+
+	    CommentPagingVO paging = new CommentPagingVO();
+	    paging.page = page;
+	    paging.size = size;
+	    paging.total_cnt = total_cnt;
+	    paging.total_page = total_page;
+
+	    ReplyListResponseVO res = new ReplyListResponseVO();
+	    res.list = list;
+	    res.paging = paging;
+
+	    return res;
+	}
+
 	
 	//코멘트 작성자와 토큰의 유저가 같은 유저인지 확인.
 	public boolean isWriter(int comment_no, String user_id) {

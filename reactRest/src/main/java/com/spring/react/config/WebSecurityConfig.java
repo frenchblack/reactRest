@@ -75,7 +75,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.authorizeRequests().antMatchers("/checkId","/signup","/getMenuList","/login", "/userLogout", "/refresh"
 												, "/getChildMenuList"
 												, "/getBoardList", "/getCategories", "/getSubCategories", "/viewBoard"
-												, "/getCommentList"
+												, "/getCommentList", "/getReplyList"
 												, "/images/**"
 												, "/file/**" ).permitAll()
 				//옵션요청 모두 허용

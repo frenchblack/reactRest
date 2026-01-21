@@ -62,4 +62,18 @@ public interface CommentMapper {
 	      @Param("comment_no") int comment_no
 	    , @Param("user_id") String user_id
 	);
+	
+	int getReplyTotalCnt(
+		      @Param("board_no") int board_no
+		    , @Param("p_comment_no") int p_comment_no
+	);
+
+	List<CommentVO> getReplyList(
+	      @Param("board_no") int board_no
+	    , @Param("p_comment_no") int p_comment_no
+	    , @Param("size") int size
+	    , @Param("offset") int offset
+	    , @Param("viewer_user_id") String viewer_user_id
+	);
+
 }

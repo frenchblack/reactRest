@@ -17,6 +17,7 @@ import com.spring.react.vo.comment.CommentReactionResponseVO;
 import com.spring.react.vo.comment.CommentUpdateRequestVO;
 import com.spring.react.vo.comment.CommentWriteRequestVO;
 import com.spring.react.vo.comment.CommentWriteResponseVO;
+import com.spring.react.vo.comment.ReplyListResponseVO;
 
 @RestController
 public class Comment {
@@ -51,6 +52,7 @@ public class Comment {
 	    int comment_no = commentService.writeComment(
 	          req.getBoard_no()
 	        , req.getComment_content()
+	        , req.getP_comment_no()
 	        , user.getUsername()
 	    );
 
@@ -95,5 +97,18 @@ public class Comment {
         String viewer_user_id = user.getUsername();
         return commentService.reactComment(req.getComment_no(), req.getReaction_cd(), viewer_user_id);
     }
+    
+    @GetMapping("/getReplyList")
+    ReplyListResponseVO getReplyList(
+          @RequestParam int board_no
+        , @RequestParam int p_comment_no
+        , @RequestParam(required = false, defaultValue = "1") int page
+        , @RequestParam(required = false, defaultValue = "10") int size
+        , @AuthenticationPrincipal UserVO user
+    ) {
+        String viewer_user_id = (user == null) ? null : user.getUsername();
+        return commentService.getReplyList(board_no, p_comment_no, page, size, viewer_user_id);
+    }
+
 	
 }

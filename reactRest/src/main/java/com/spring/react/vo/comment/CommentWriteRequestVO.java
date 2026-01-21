@@ -7,4 +7,5 @@ import lombok.Setter;
 public class CommentWriteRequestVO {
     private int board_no;
     private String comment_content;
+    private Integer p_comment_no;
 }

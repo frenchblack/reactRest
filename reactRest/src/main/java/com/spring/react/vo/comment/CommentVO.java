@@ -15,7 +15,7 @@ public class CommentVO {
 	public boolean ex_del;
 	public int like_cnt;
 	public int comment_lvl;
-	public int p_comment_no;
+	public Integer p_comment_no;
 	public int c_comment_cnt;
 	public int my_like_yn;
 	public int owner_yn;

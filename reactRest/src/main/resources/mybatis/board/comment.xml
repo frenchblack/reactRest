@@ -56,6 +56,7 @@
 		       , EX_DEL
 		       , LIKE_CNT
 		       , COMMENT_LVL
+		       , P_COMMENT_NO
 		  )
 		  VALUES (
 		         #{board_no}
@@ -64,7 +65,8 @@
 		       , NOW()
 		       , 0
 		       , 0
-		       , 0
+		       , #{comment_lvl}
+		       , #{p_comment_no}
 		  )
 		  <selectKey keyProperty="comment_no" resultType="int" order="AFTER">
 		    SELECT LAST_INSERT_ID()
@@ -137,5 +139,55 @@
 	  SELECT A.LIKE_CNT AS LIKE_CNT
 	    FROM COMMENT A
 	   WHERE A.COMMENT_NO = #{comment_no}
+	</select>
+	<select id="getReplyTotalCnt" resultType="int">
+		SELECT
+		     COUNT(1) AS CNT
+		FROM COMMENT A
+		WHERE A.BOARD_NO = #{board_no}
+		  AND A.COMMENT_LVL = 1
+		  AND A.P_COMMENT_NO = #{p_comment_no}
+	</select>
+	<select id="getReplyList" resultType="com.spring.react.vo.comment.CommentVO">
+		SELECT A.COMMENT_NO AS COMMENT_NO
+			   , A.BOARD_NO AS BOARD_NO
+			   , A.USER_ID AS USER_ID
+			   , B.USER_NM AS USER_NM
+			   , DATE_FORMAT(A.WRITE_DATE, '%Y-%m-%d %H:%i:%s') AS WRITE_DATE
+			   , CASE
+			        WHEN A.EX_DEL = 1 THEN '[삭제된 댓글입니다.]'
+			        ELSE A.COMMENT_CONTENT
+			     END AS COMMENT_CONTENT
+			   , A.EX_DEL AS EX_DEL
+			   , A.LIKE_CNT AS LIKE_CNT
+			   , A.COMMENT_LVL AS COMMENT_LVL
+			   , A.P_COMMENT_NO AS P_COMMENT_NO
+			   , 0 AS C_COMMENT_CNT
+			   , CASE
+			        WHEN #{viewer_user_id} IS NULL THEN 0
+			        WHEN EXISTS (
+			             SELECT 1
+			             FROM COMMENT_LIKE L
+			             WHERE L.COMMENT_NO = A.COMMENT_NO
+			               AND L.USER_ID = #{viewer_user_id}
+			               AND L.REACTION_CD = 1
+			        ) THEN 1
+			        ELSE 0
+			     END AS MY_LIKE_YN
+			   , CASE
+			        WHEN #{viewer_user_id} IS NULL THEN 0
+			        WHEN A.USER_ID = #{viewer_user_id} THEN 1
+			        ELSE 0
+			     END AS OWNER_YN
+			FROM COMMENT A
+			JOIN USERS B
+			  ON B.USER_ID = A.USER_ID
+			WHERE A.BOARD_NO = #{board_no}
+			  AND A.COMMENT_LVL = 1
+			  AND A.P_COMMENT_NO = #{p_comment_no}
+			ORDER BY
+			     A.WRITE_DATE ASC
+			   , A.COMMENT_NO ASC
+			LIMIT #{size} OFFSET #{offset}
 	</select>
 </mapper>
