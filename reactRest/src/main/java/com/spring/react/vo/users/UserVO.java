@@ -1,4 +1,4 @@
-package com.spring.react.vo;
+package com.spring.react.vo.users;
 
 import java.util.Collection;
 

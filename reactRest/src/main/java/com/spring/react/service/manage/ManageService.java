@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.spring.react.mapper.manage.ManageMapper;
 import com.spring.react.vo.MenuVO;
-import com.spring.react.vo.UserVO;
+import com.spring.react.vo.users.UserVO;
 
 @Service
 public class ManageService {

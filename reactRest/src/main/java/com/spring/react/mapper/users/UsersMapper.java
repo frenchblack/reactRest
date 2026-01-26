@@ -3,7 +3,7 @@ package com.spring.react.mapper.users;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
-import com.spring.react.vo.UserVO;
+import com.spring.react.vo.users.UserVO;
 
 @Repository
 @Mapper

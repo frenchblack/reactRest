@@ -30,7 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.spring.react.service.board.BoardService;
 import com.spring.react.vo.BoardVO;
 import com.spring.react.vo.FileVO;
-import com.spring.react.vo.UserVO;
+import com.spring.react.vo.users.UserVO;
 
 @RestController
 public class Board {

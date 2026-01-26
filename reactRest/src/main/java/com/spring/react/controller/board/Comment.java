@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.spring.react.service.board.BoardService;
 import com.spring.react.service.board.CommentService;
-import com.spring.react.vo.UserVO;
 import com.spring.react.vo.comment.CommentListResponseVO;
 import com.spring.react.vo.comment.CommentReactionRequestVO;
 import com.spring.react.vo.comment.CommentReactionResponseVO;
@@ -18,6 +17,7 @@ import com.spring.react.vo.comment.CommentUpdateRequestVO;
 import com.spring.react.vo.comment.CommentWriteRequestVO;
 import com.spring.react.vo.comment.CommentWriteResponseVO;
 import com.spring.react.vo.comment.ReplyListResponseVO;
+import com.spring.react.vo.users.UserVO;
 
 @RestController
 public class Comment {

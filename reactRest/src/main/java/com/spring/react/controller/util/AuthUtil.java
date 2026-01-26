@@ -1,6 +1,6 @@
 package com.spring.react.controller.util;
 
-import com.spring.react.vo.UserVO;
+import com.spring.react.vo.users.UserVO;
 
 public class AuthUtil {
     public static String requireUserId(UserVO user) {

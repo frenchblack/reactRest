@@ -1,58 +1,81 @@
 package com.spring.react.controller.security;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.spring.react.config.JwtTokenUtil;
 import com.spring.react.service.security.JwtUserDetailsService;
-import com.spring.react.vo.UserVO;
-import com.spring.react.vo.security.JwtResponse;
+import com.spring.react.service.security.UserAuthLogService;
+import com.spring.react.vo.users.UserVO;
 
 @RestController
 @CrossOrigin
 public class JwtAuthenticationController {
-	@Autowired
-	private AuthenticationManager authenticationManager;
 
-	@Autowired
-	private JwtUserDetailsService userDetailsService;
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationController.class);
 
-	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	public ResponseEntity<?> login(@RequestBody UserVO authenticationRequest) throws Exception {
-		//인증
-		authenticate(authenticationRequest.getUser_id(), authenticationRequest.getUser_pw());
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-		return ResponseEntity.ok(userDetailsService.createToken(authenticationRequest));
-	}
-	
-	@RequestMapping(value = "/refresh", method = RequestMethod.POST)
-    public ResponseEntity<?> refresh(HttpServletRequest request, HttpServletResponse response) {
-        // 필터에서 이미 처리한 응답을 전달하는 역할
-        // 이 컨트롤러 자체는 로직을 수행하지 않고 필터가 응답을 작성하도록 위임
+    @Autowired
+    private JwtUserDetailsService userDetailsService;
 
-        return ResponseEntity.ok().build(); 
+    @Autowired
+    private UserAuthLogService userAuthLogService;
+
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    public ResponseEntity<?> login(HttpServletRequest request, @RequestBody UserVO authenticationRequest) throws Exception {
+
+        String user_id = authenticationRequest.getUser_id();
+
+        try {
+            authenticate(authenticationRequest.getUser_id(), authenticationRequest.getUser_pw());
+
+            // ✅ 시스템 로그
+            log.info("LOGIN SUCCESS user_id={}", user_id);
+
+            // ✅ DB 로그
+            userAuthLogService.writeLog(request, user_id, "LOGIN", "Y", null);
+
+            return ResponseEntity.ok(userDetailsService.createToken(authenticationRequest));
+
+        } catch (Exception e) {
+
+            // ✅ 시스템 로그
+            log.warn("LOGIN FAIL user_id={} reason={}", user_id, e.getMessage());
+
+            // ✅ DB 로그
+            userAuthLogService.writeLog(request, user_id, "LOGIN", "N", e.getMessage());
+
+            throw e;
+        }
     }
-	
-	private void authenticate(String username, String password) throws Exception {
-		try {
-			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-		} catch (DisabledException e) {
-			throw new Exception("USER_DISABLED", e);
-		} catch (BadCredentialsException e) {
-			throw new Exception("INVALID_CREDENTIALS", e);
-		}
-	}
+
+    @RequestMapping(value = "/refresh", method = RequestMethod.POST)
+    public ResponseEntity<?> refresh(HttpServletRequest request) {
+        // 필터가 응답 작성
+        return ResponseEntity.ok().build();
+    }
+
+    private void authenticate(String username, String password) throws Exception {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+        } catch (DisabledException e) {
+            throw new Exception("USER_DISABLED", e);
+        } catch (BadCredentialsException e) {
+            throw new Exception("INVALID_CREDENTIALS", e);
+        }
+    }
 }

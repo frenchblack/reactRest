@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 
 import com.spring.react.config.JwtTokenUtil;
 import com.spring.react.mapper.users.UsersMapper;
-import com.spring.react.vo.UserVO;
 import com.spring.react.vo.security.JwtResponse;
+import com.spring.react.vo.users.UserVO;
 
 import lombok.RequiredArgsConstructor;
 

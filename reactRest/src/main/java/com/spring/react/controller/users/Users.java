@@ -3,6 +3,10 @@ package com.spring.react.controller.users;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,14 +15,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.spring.react.service.security.JwtUserDetailsService;
-import com.spring.react.vo.UserVO;
+import com.spring.react.service.security.UserAuthLogService;
+import com.spring.react.vo.users.UserVO;
 
 @RestController
 //@RequestMapping("containers")
 public class Users {
 
+	private static final Logger log = LoggerFactory.getLogger(Users.class);
+	
 	@Autowired
 	public JwtUserDetailsService jwtUserDetailsService;
+	
+	@Autowired
+    private UserAuthLogService userAuthLogService;
 
 	//회원가입
 	@RequestMapping(value = "/signup", method = RequestMethod.POST)
@@ -43,15 +53,26 @@ public class Users {
 	}
 	
 	//로그아웃
-	@RequestMapping(value = "/userLogout", method = RequestMethod.POST)
-	public Map<String, Object> logout(@RequestBody UserVO userVO) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		System.out.println(userVO.getUsername());
-		map.put("result", jwtUserDetailsService.initRefreshtoken(userVO.getUsername()));
-		map.put("message", "로그아웃이 완료되었습니다.");
-		
-		return map;
-	}
+    @RequestMapping(value = "/userLogout", method = RequestMethod.POST)
+    public Map<String, Object> logout(HttpServletRequest request, @RequestBody UserVO userVO) {
+
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        String user_id = userVO.getUsername();
+        int result = jwtUserDetailsService.initRefreshtoken(user_id);
+
+        // ✅ 시스템 로그
+        log.info("LOGOUT user_id={} result={}", user_id, result);
+
+        // ✅ DB 로그 (일단 성공 로그로만)
+        userAuthLogService.writeLog(request, user_id, "LOGOUT", "Y", null);
+
+        map.put("result", result);
+        map.put("message", "로그아웃이 완료되었습니다.");
+
+        return map;
+    }
+
 	
 	@RequestMapping(value = "/getUserMenu", method = RequestMethod.GET)
 	public Map<String, Object> getUserMenu(@RequestParam String user_id) {

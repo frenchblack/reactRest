@@ -18,7 +18,8 @@
 	<logger name="com.board" level="DEBUG" appender-ref="console" />
 	<logger name="jdbc.sqlonly" level="INFO" appender-ref="console-infolog" />
 	<logger name="jdbc.resultsettable" level="INFO" appender-ref="console-infolog" />
-
+	<logger name="com.spring.react" level="INFO" appender-ref="console" />
+	
 	<!-- Root Logger -->
 	<root level="ERROR">
 		<appender-ref ref="console" />
