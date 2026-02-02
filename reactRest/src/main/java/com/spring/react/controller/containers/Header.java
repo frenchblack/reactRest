@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.spring.react.service.containers.HeaderService;
 import com.spring.react.service.manage.ManageService;
-import com.spring.react.vo.MenuVO;
+import com.spring.react.vo.manage.MenuVO;
 
 @RestController
 public class Header {

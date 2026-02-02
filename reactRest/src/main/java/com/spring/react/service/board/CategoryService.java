@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.spring.react.mapper.board.CategoryMapper;
-import com.spring.react.vo.CategoryVO;
+import com.spring.react.vo.manage.CategoryVO;
 
 @Service
 public class CategoryService {

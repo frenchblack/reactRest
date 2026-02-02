@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.react.mapper.manage.AdminLogMapper">
+
+  <insert id="insertAdminActionLog" parameterType="com.spring.react.vo.manage.AdminActionLogVO">
+    INSERT
+      INTO ADMIN_ACTION_LOG (
+               USER_ID
+             , ACTION_CD
+             , TARGET_CD
+             , REQ_URI 
+             , IP_ADDR
+             , USER_AGENT
+             , SUCCESS_YN
+             , ERROR_MSG
+             , REQ_JSON
+           )
+    VALUES (
+             #{user_id}
+           , #{action_cd}
+           , #{target_cd}
+           , #{req_uri}
+           , #{ip_addr}
+           , #{user_agent}
+           , #{success_yn}
+           , #{error_msg}
+           , #{req_json}
+           )
+  </insert>
+
+</mapper>

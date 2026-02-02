@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.spring.react.mapper.containers.HeaderMapper;
-import com.spring.react.vo.MenuVO;
+import com.spring.react.vo.manage.MenuVO;
 
 @Service
 public class HeaderService {

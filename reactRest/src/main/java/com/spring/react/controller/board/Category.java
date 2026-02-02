@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.spring.react.service.board.CategoryService;
-import com.spring.react.vo.CategoryVO;
+import com.spring.react.vo.manage.CategoryVO;
 
 @RestController
 public class Category {
