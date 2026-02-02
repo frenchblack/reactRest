@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,8 +49,12 @@ public class JwtAuthenticationController {
 
             // ✅ DB 로그
             userAuthLogService.writeLog(request, user_id, "LOGIN", "Y", null);
+            
+            // ✅ 인증 성공 후 DB에서 role 포함 UserDetails 재조회
+            UserDetails userDetails = userDetailsService.loadUserByUsername(user_id);
 
-            return ResponseEntity.ok(userDetailsService.createToken(authenticationRequest));
+            
+            return ResponseEntity.ok(userDetailsService.createToken(userDetails));
 
         } catch (Exception e) {
 

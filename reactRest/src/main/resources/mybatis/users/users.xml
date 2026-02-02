@@ -4,6 +4,7 @@
 	<select id="getUserName" parameterType="String" resultType="UserVO">
 		SELECT A.USER_ID AS USER_ID
 			 , A.USER_PW AS USER_PW
+			 , A.ROLE_CD AS ROLE_CD
 		  FROM USERS A
 		 WHERE A.USER_ID = #{user_id}
 	</select>

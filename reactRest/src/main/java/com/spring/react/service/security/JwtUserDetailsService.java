@@ -37,7 +37,13 @@ public class JwtUserDetailsService implements UserDetailsService {
 	
 	//토큰발급
 	public JwtResponse createToken(UserDetails userDetails) {
-		return new JwtResponse(createAccesstoken(userDetails), createRefreshtoken(userDetails.getUsername()));
+	    UserVO user = (UserVO) userDetails;
+
+	    return new JwtResponse(
+	            createAccesstoken(userDetails)
+	          , createRefreshtoken(userDetails.getUsername())
+	          , user.getRole_cd()
+	    );
 	}
 	
 	//액세스토큰 생성

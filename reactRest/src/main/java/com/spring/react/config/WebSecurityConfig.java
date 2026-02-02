@@ -66,30 +66,40 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new CustomAuthenticationProvider(jwtUserDetailsService, passwordEncoder());
     }
 
-	@Override
-	protected void configure(HttpSecurity httpSecurity) throws Exception {
-		// We don't need CSRF for this example
-		httpSecurity.cors().and()
-				.csrf().disable()
-				// dont authenticate this particular request
-				.authorizeRequests().antMatchers("/checkId","/signup","/getMenuList","/login", "/userLogout", "/refresh"
-												, "/getChildMenuList"
-												, "/getBoardList", "/getCategories", "/getSubCategories", "/viewBoard"
-												, "/getCommentList", "/getReplyList"
-												, "/images/**"
-												, "/file/**" ).permitAll()
-				//옵션요청 모두 허용
-				.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-				// all other requests need to be authenticated
-				.anyRequest().authenticated().and().
-				// make sure we use stateless session; session won't be used to
-				// store user's state.
-				exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint).and().sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    @Override
+    protected void configure(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.cors().and()
+                .csrf().disable()
+                .authorizeRequests()
 
-		// Add a filter to validate the tokens with every request
-		httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-	}
+                // 1) 공개 API
+                .antMatchers("/checkId","/signup","/getMenuList","/login", "/userLogout", "/refresh"
+                        , "/getChildMenuList"
+                        , "/getBoardList", "/getCategories", "/getSubCategories", "/viewBoard"
+                        , "/getCommentList", "/getReplyList"
+                        , "/images/**"
+                        , "/file/**").permitAll()
+
+                // 2) 관리자 전용 API (⭐ 이게 핵심)
+                .antMatchers(
+                          "/getManageMenuList"
+                        , "/postMenu"
+                        , "/putMenu"
+                        , "/deleteMenu"
+                ).hasRole("ADMIN")
+
+                // 3) 옵션요청
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // 4) 나머지는 로그인만
+                .anyRequest().authenticated()
+                .and()
+                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+    }
 	
 	//cors 설정
     @Bean
