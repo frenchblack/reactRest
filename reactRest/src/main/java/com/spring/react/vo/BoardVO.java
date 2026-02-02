@@ -18,6 +18,7 @@ public class BoardVO {
 	public boolean ex_del;
 	public boolean ex_image;
 	public boolean ex_file;
+	public String p_category_cd;
 	public String category_cd;
 	public String category_nm;
 	public String menu_cd;
