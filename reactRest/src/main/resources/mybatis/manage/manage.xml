@@ -2,43 +2,58 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.spring.react.mapper.manage.ManageMapper">
 	<select id="getManageMenuList" resultType="MenuVO">
-		WITH RECURSIVE CTE AS (
-			SELECT A.MENU_CD
-				  , A.P_CD
-				  , A.MENU_NM
-				  , A.MENU_LVL
-				  , A.S_ORD
-				  , A.USE_YN
-				  , A.ETC
-				  , A.MENU_URL
-				  , CONCAT_WS('-', CONVERT(A.S_ORD, CHAR(100)), A.MENU_CD) AS PATH
-			  FROM MENU A
-			 WHERE A.MENU_LVL = '1'
-			 
-			 UNION ALL
-			 
-			SELECT B.MENU_CD
-				  , B.P_CD
-				  , B.MENU_NM
-				  , B.MENU_LVL
-				  , B.S_ORD
-				  , B.USE_YN
-				  , B.ETC
-				  , B.MENU_URL
-				  , CONCAT_WS('-', C.PATH, B.S_ORD, B.MENU_CD) AS PATH
-			  FROM MENU B
-			 INNER JOIN CTE C 
-			    ON B.P_CD = C.MENU_CD
-		) SELECT A.MENU_CD AS MENU_CD
-		   	     , A.P_CD AS P_CD
-				 , A.MENU_NM AS MENU_NM
-				 , A.MENU_LVL AS MENU_LVL
-				 , A.S_ORD AS S_ORD
-				 , A.USE_YN AS USE_YN
-				 , A.ETC AS ETC
-				 , A.MENU_URL AS MENU_URL
-		    FROM CTE A
-		   ORDER BY A.PATH
+		WITH RECURSIVE CTE AS
+		(
+		    SELECT
+		          A.MENU_CD                                   AS MENU_CD
+		        , A.P_CD                                      AS P_CD
+		        , A.MENU_NM                                   AS MENU_NM
+		        , A.MENU_LVL                                  AS MENU_LVL
+		        , A.S_ORD                                     AS S_ORD
+		        , A.USE_YN                                    AS USE_YN
+		        , A.ETC                                       AS ETC
+		        , A.MENU_URL                                  AS MENU_URL
+		        , CONCAT_WS(
+		              '-'
+		            , LPAD(CAST(A.S_ORD AS CHAR(50)), 5, '0')
+		            , CAST(A.MENU_CD AS CHAR(50))
+		          )                                           AS PATH
+		    FROM MENU A
+		    WHERE A.MENU_LVL = '1'
+		
+		    UNION ALL
+		
+		    SELECT
+		          B.MENU_CD                                   AS MENU_CD
+		        , B.P_CD                                      AS P_CD
+		        , B.MENU_NM                                   AS MENU_NM
+		        , B.MENU_LVL                                  AS MENU_LVL
+		        , B.S_ORD                                     AS S_ORD
+		        , B.USE_YN                                    AS USE_YN
+		        , B.ETC                                       AS ETC
+		        , B.MENU_URL                                  AS MENU_URL
+		        , CONCAT_WS(
+		              '-'
+		            , C.PATH
+		            , LPAD(CAST(B.S_ORD AS CHAR(50)), 5, '0')
+		            , B.MENU_CD
+		          )                                           AS PATH
+		    FROM MENU B
+		    INNER JOIN CTE C
+		        ON B.P_CD = C.MENU_CD
+		)
+		SELECT
+		      A.MENU_CD                                       AS MENU_CD
+		    , A.P_CD                                          AS P_CD
+		    , A.MENU_NM                                       AS MENU_NM
+		    , A.MENU_LVL                                      AS MENU_LVL
+		    , A.S_ORD                                         AS S_ORD
+		    , A.USE_YN                                        AS USE_YN
+		    , A.ETC                                           AS ETC
+		    , A.MENU_URL                                      AS MENU_URL
+		FROM CTE A
+		ORDER BY
+		      A.PATH
 	</select>
 	<insert id="insertMenu" parameterType="MenuVO">
 		INSERT INTO MENU(

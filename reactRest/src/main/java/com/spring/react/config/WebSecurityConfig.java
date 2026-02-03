@@ -82,10 +82,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // 2) 관리자 전용 API (⭐ 이게 핵심)
                 .antMatchers(
-                          "/getManageMenuList"
-                        , "/postMenu"
-                        , "/putMenu"
-                        , "/deleteMenu"
+                          "/getManageMenuList", "/postMenu", "/putMenu", "/deleteMenu"
+                        , "/manage/**"
                 ).hasRole("ADMIN")
 
                 // 3) 옵션요청

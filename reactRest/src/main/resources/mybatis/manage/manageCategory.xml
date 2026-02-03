@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.react.mapper.manage.ManageCategoryMapper">
+	<select id="SelectManageCategoryList" resultType="com.spring.react.vo.manage.ManageCategoryVO">
+        WITH RECURSIVE CTE AS
+		(
+		    /*===========================================================
+		      1) ROOT : MENU LVL = 1
+		    ===========================================================*/
+		    SELECT
+		          CAST(A.MENU_CD AS CHAR(20))                         AS CATEGORY_CD
+		        , CAST(A.P_CD    AS CHAR(20))                         AS P_CD
+		        , A.MENU_NM                                           AS CATEGORY_NM
+		        , A.MENU_LVL                                          AS CATEGORY_LVL
+		        , A.S_ORD                                             AS SORT_ORDER
+		        , A.USE_YN                                            AS USE_YN
+		        , A.MENU_CD                                           AS MENU_CD
+		        , CONCAT_WS(
+		              '-'
+		            , LPAD(CAST(A.S_ORD AS CHAR(100)), 5, '0')
+		            , CAST(A.MENU_CD AS CHAR(100))
+		          )                                                   AS PATH
+		    FROM MENU A
+		    WHERE A.MENU_LVL = 1
+		
+		    UNION ALL
+		
+		    /*===========================================================
+		      2) CHILD : MENU LVL2 + CATEGORY(LVL3~4) 를 노드풀로 만들고
+		         CTE(부모)와 P_CD 매칭으로 확장
+		    ===========================================================*/
+		    SELECT
+		          D.CATEGORY_CD                                       AS CATEGORY_CD
+		        , D.P_CD                                              AS P_CD
+		        , D.CATEGORY_NM                                       AS CATEGORY_NM
+		        , D.CATEGORY_LVL                                      AS CATEGORY_LVL
+		        , D.SORT_ORDER                                        AS SORT_ORDER
+		        , D.USE_YN                                            AS USE_YN
+		        , D.MENU_CD                                           AS MENU_CD
+		        , CONCAT_WS(
+		              '-'
+		            , E.PATH
+		            , LPAD(CAST(D.SORT_ORDER AS CHAR(20)), 5, '0')
+		            , D.CATEGORY_CD
+		          )                                                   AS PATH
+		    FROM
+		    (
+		        /* MENU LVL = 2 */
+		        SELECT
+		              CAST(B.MENU_CD AS CHAR(20))                     AS CATEGORY_CD
+		            , CAST(B.P_CD   AS CHAR(20))                      AS P_CD
+		            , B.MENU_NM                                       AS CATEGORY_NM
+		            , B.MENU_LVL                                      AS CATEGORY_LVL
+		            , B.S_ORD                                         AS SORT_ORDER
+		            , B.USE_YN                                        AS USE_YN
+		            , B.MENU_CD                                       AS MENU_CD
+		        FROM MENU B
+		        WHERE B.MENU_LVL = 2
+		
+		        UNION ALL
+		
+		        /* CATEGORY LVL = 3/4 */
+		        SELECT
+		              CAST(C.CATEGORY_CD AS CHAR(20))                 AS CATEGORY_CD
+		            , CAST(
+		                  CASE
+		                      WHEN C.P_CD IS NULL THEN C.MENU_CD
+		                      ELSE C.P_CD
+		                  END
+		              AS CHAR(20))                                    AS P_CD
+		            , C.CATEGORY_NM                                   AS CATEGORY_NM
+		            , CASE
+		                  WHEN C.P_CD IS NULL THEN 3
+		                  ELSE 4
+		              END                                             AS CATEGORY_LVL
+		            , C.SORT_ORDER                                    AS SORT_ORDER
+		            , C.USE_YN                                        AS USE_YN
+		            , C.MENU_CD                                       AS MENU_CD
+		        FROM CATEGORY C
+		    ) D
+		    INNER JOIN CTE E
+		        ON D.P_CD = E.CATEGORY_CD
+		       AND D.CATEGORY_LVL-1 = E.CATEGORY_LVL
+		)
+		SELECT
+		      A.CATEGORY_CD                                           AS CATEGORY_CD
+		    , A.P_CD                                                  AS P_CD
+		    , A.CATEGORY_NM                                           AS CATEGORY_NM
+		    , A.CATEGORY_LVL                                          AS CATEGORY_LVL
+		    , A.SORT_ORDER                                            AS SORT_ORDER
+		    , A.USE_YN                                                AS USE_YN
+		    , A.MENU_CD                                               AS MENU_CD
+		    , A.PATH                                                  AS PATH
+		    , CONCAT_WS('-', A.CATEGORY_LVL, A.CATEGORY_CD)           AS TREE_KEY
+		    , CASE WHEN A.P_CD IS NULL THEN NULL ELSE CONCAT_WS('-', A.CATEGORY_LVL-1, A.P_CD) END AS P_TREE_KEY
+		FROM CTE A
+		ORDER BY
+		      A.PATH
+    </select>	
+	<insert id="InsertCategory" parameterType="com.spring.react.vo.manage.ManageCategoryVO">
+	    INSERT INTO CATEGORY
+	    (
+	          CATEGORY_CD
+	        , P_CD
+	        , CATEGORY_NM
+	        , MENU_CD
+	        , USE_YN
+	        , SORT_ORDER
+	    )
+	    VALUES
+	    (
+	          #{category_cd}
+	        , #{p_cd}
+	        , #{category_nm}
+	        , #{menu_cd}
+	        , #{use_yn}
+	        , #{sort_order}
+	    )
+	</insert>
+	
+	<update id="UpdateCategory" parameterType="com.spring.react.vo.manage.ManageCategoryVO">
+	    UPDATE CATEGORY A
+	       SET A.CATEGORY_NM = #{category_nm}
+	         , A.USE_YN      = #{use_yn}
+	         , A.SORT_ORDER  = #{sort_order}
+	     WHERE A.CATEGORY_CD = #{category_cd}
+	</update>
+	
+	<delete id="DeleteCategory">
+	    DELETE
+	      FROM CATEGORY A
+	     WHERE A.CATEGORY_CD = #{category_cd}
+	</delete>
+</mapper>
