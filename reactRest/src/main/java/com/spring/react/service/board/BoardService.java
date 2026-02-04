@@ -2,6 +2,8 @@ package com.spring.react.service.board;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -155,6 +157,7 @@ public class BoardService {
 		mapper.deleteFile(file_id);
 	}
 	
+	//한글파일명 때문에 디코딩해서 빼주는데 여기는 디코딩을 해주지 않았기떄문에 이름비교시 다른이름으로 분류가 돼서 있는 파일이 삭제됐었음.
 	//사용하지 않는 이미지 삭제
 	public void deleteNotUsedImage(int boardId, String contentHtml) {
 	    // 1. 본문에서 사용 중인 이미지 경로 추출 (절대경로 형태로 반환됨)
@@ -172,7 +175,8 @@ public class BoardService {
 	    }
 
 	    for (File file : files) {
-	        String filePath = file.getAbsolutePath();
+	    	String filePath = file.toPath().normalize().toString();
+	    	
 	        System.out.println("file.getAbsolutePath() : " + file.getAbsolutePath());
 	        // 3. 사용되지 않은 이미지면 삭제
 	        if (!usedImagePaths.contains(filePath)) {
@@ -320,17 +324,32 @@ public class BoardService {
 	    Matcher matcher = Pattern.compile(IMAGE_PATTERN).matcher(html);
 	    while (matcher.find()) {
 	        String src = matcher.group(1);
+	        
+	     // ✅ 핵심: URL 인코딩(%EC%...)을 실제 한글 파일명으로 복원
+	        String decodedSrc = URLDecoder.decode(src, StandardCharsets.UTF_8);	        
 
-	        String absolutePath = convertToAbsolutePath(src); // 구현 필요
-	        srcSet.add(absolutePath);
+	        String absolutePath = convertToAbsolutePath(decodedSrc); // 구현 필요
+	        srcSet.add(Paths.get(absolutePath).normalize().toString());
 	    }
 	    return srcSet;
 	}
 	
 	//이미지 경로 변환
 	public String convertToAbsolutePath(String webPath) {
-		String imageRelativePath = webPath.replaceFirst("^https?://[^/]+", ""); // 도메인 제거	
-		return Paths.get(rootDir, "/upload", imageRelativePath).toString();
+//		String imageRelativePath = webPath.replaceFirst("^https?://[^/]+", ""); // 도메인 제거
+		
+		String relative = webPath.replaceFirst("^https?://[^/]+", "");
+		
+	    // ✅ 앞의 '/' 제거해서 Paths.get(rootDir, "upload", ...)가 정상적으로 결합되게
+	    if (relative.startsWith("/")) {
+	        relative = relative.substring(1);
+	    }
+
+	    // ✅ rootDir/upload/.... 로 안전 결합
+	    Path p = Paths.get(rootDir, "upload", relative).normalize();
+	    return p.toString();
+	    
+//		return Paths.get(rootDir, "/upload", imageRelativePath).toString();
 	}
 	
 	//게시글 내 파일 갯수 반환
