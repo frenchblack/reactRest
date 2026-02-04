@@ -16,9 +16,13 @@
 			  , A.EX_IMAGE AS EX_IMAGE
 			  , A.EX_FILE AS EX_FILE
 		  FROM BOARD A
-		  LEFT OUTER JOIN CATEGORY B
+		 INNER JOIN CATEGORY B
 		    ON A.CATEGORY_CD = B.CATEGORY_CD
+		 INNER JOIN CATEGORY C
+		    ON B.P_CD = C.CATEGORY_CD
 		   WHERE A.EX_DEL = FALSE
+		     AND B.USE_YN = 1
+		     AND C.USE_YN = 1
      		 AND A.MENU_CD =#{menu_cd}
 		  <if test="keyword != null and keyword != ''">
 		    <choose>

@@ -8,6 +8,8 @@
 		  FROM CATEGORY A 
 		 WHERE A.MENU_CD = #{menu_cd}
 		   AND A.P_CD IS NULL
+		   AND A.USE_YN = 1
+		 ORDER BY A.SORT_ORDER
 	</select>
 	<select id="getSubCategories" resultType="categoryVO"> 
 		SELECT A.CATEGORY_CD AS CATEGORY_CD
@@ -15,5 +17,7 @@
 		     , A.CATEGORY_NM AS CATEGORY_NM
 		  FROM category A
 		 WHERE A.P_CD = #{p_cd}
+		   AND A.USE_YN = 1
+		 ORDER BY A.SORT_ORDER
 	</select>
 </mapper>
