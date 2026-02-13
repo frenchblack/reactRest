@@ -49,11 +49,11 @@ public class JwtAuthenticationController {
 
             // ✅ DB 로그
             userAuthLogService.writeLog(request, user_id, "LOGIN", "Y", null);
-            
+
             // ✅ 인증 성공 후 DB에서 role 포함 UserDetails 재조회
             UserDetails userDetails = userDetailsService.loadUserByUsername(user_id);
 
-            
+
             return ResponseEntity.ok(userDetailsService.createToken(userDetails));
 
         } catch (Exception e) {

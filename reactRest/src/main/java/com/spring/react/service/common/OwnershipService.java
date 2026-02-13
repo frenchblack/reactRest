@@ -17,19 +17,27 @@ public class OwnershipService {
 
     // 게시글 작성자 여부
     public boolean isBoardOwner(int board_no, String user_id) {
-    	if (user_id == null) return false;
+    	if (user_id == null) {
+			return false;
+		}
     	String writer = boardMapper.getWriter(board_no);
 		boolean result = false;
-		if (writer == null) return result;
-		
-		if( writer != null && user_id != null && writer.equals(user_id)) result = true;
-		
+		if (writer == null) {
+			return result;
+		}
+
+		if( writer != null && user_id != null && writer.equals(user_id)) {
+			result = true;
+		}
+
 		return result;
     }
 
     // 댓글 작성자 여부
     public boolean isCommentOwner(int comment_no, String user_id) {
-        if (user_id == null) return false;
+        if (user_id == null) {
+			return false;
+		}
 
         return commentMapper.getWriter(comment_no, user_id) > 0;
     }

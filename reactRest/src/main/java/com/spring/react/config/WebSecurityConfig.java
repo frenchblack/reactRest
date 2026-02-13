@@ -55,12 +55,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	public AuthenticationManager authenticationManagerBean() throws Exception {
 		return super.authenticationManagerBean();
 	}
-	
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(authenticationProvider());
     }
-    
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         return new CustomAuthenticationProvider(jwtUserDetailsService, passwordEncoder());
@@ -98,7 +98,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
-	
+
 	//cors 설정
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

@@ -23,8 +23,12 @@ public class CommentService {
 
 	public CommentListResponseVO getCommentList(int board_no, int page, int size, String viewer_user_id) {
 
-        if (page <= 0) page = 1;
-        if (size <= 0) size = 10;
+        if (page <= 0) {
+			page = 1;
+		}
+        if (size <= 0) {
+			size = 10;
+		}
 
         int total_cnt = mapper.getCommentTotalCnt(board_no);
         int total_page = (int) Math.ceil((double) total_cnt / (double) size);
@@ -45,7 +49,7 @@ public class CommentService {
 
         return res;
     }
-	
+
 	@Transactional
 	public int writeComment(int board_no, String comment_content, Integer p_comment_no, String user_id) {
 
@@ -105,7 +109,7 @@ public class CommentService {
 	        throw new RuntimeException("삭제 권한이 없거나 이미 삭제된 댓글입니다.");
 	    }
 	}
-	
+
 	@Transactional
 	public CommentReactionResponseVO reactComment(int comment_no, int reaction_cd, String viewer_user_id) {
 
@@ -146,11 +150,15 @@ public class CommentService {
 
 	    return res;
 	}
-	
+
 	public ReplyListResponseVO getReplyList(int board_no, int p_comment_no, int page, int size, String viewer_user_id) {
 
-	    if (page <= 0) page = 1;
-	    if (size <= 0) size = 10;
+	    if (page <= 0) {
+			page = 1;
+		}
+	    if (size <= 0) {
+			size = 10;
+		}
 
 	    int total_cnt = mapper.getReplyTotalCnt(board_no, p_comment_no);
 	    int total_page = (int) Math.ceil((double) total_cnt / (double) size);
@@ -171,7 +179,7 @@ public class CommentService {
 	    return res;
 	}
 
-	
+
 	//코멘트 작성자와 토큰의 유저가 같은 유저인지 확인.
 	public boolean isWriter(int comment_no, String user_id) {
 		return ownershipService.isCommentOwner(comment_no, user_id);

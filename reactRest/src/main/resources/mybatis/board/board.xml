@@ -127,6 +127,11 @@
 		   SET A.CONTENT = #{content}
 		 WHERE A.BOARD_NO = #{board_no}
 	</update>
+	<update id="updateThumb" parameterType="BoardVO">
+	    UPDATE BOARD A
+	       SET A.THUMB_URL = #{thumb_url}
+	     WHERE A.BOARD_NO = #{board_no}
+	</update>
 	<insert id="saveFileMuti">
 	    INSERT INTO BOARD_FILE (
 	        BOARD_NO
@@ -192,5 +197,10 @@
 		SELECT A.WRITER AS WRITER
 		  FROM BOARD A
 		 WHERE A.BOARD_NO = #{board_no}
+	</select>
+	<select id="getThumbUrl" resultType="String">
+	    SELECT A.THUMB_URL AS THUMB_URL
+	      FROM BOARD A
+	     WHERE A.BOARD_NO = #{board_no}
 	</select>
 </mapper>

@@ -12,7 +12,9 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 
 //*************************************************
@@ -41,7 +43,9 @@ public class ImageViewController {
         }
 
         String contentType = Files.probeContentType(path);
-        if (contentType == null) contentType = "application/octet-stream";
+        if (contentType == null) {
+			contentType = "application/octet-stream";
+		}
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
@@ -65,7 +69,36 @@ public class ImageViewController {
         }
 
         String contentType = Files.probeContentType(path);
-        if (contentType == null) contentType = "application/octet-stream";
+        if (contentType == null) {
+			contentType = "application/octet-stream";
+		}
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+                .body(resource);
+    }
+    @GetMapping("/images/thumb/{boardId}/{fileName:.+}")
+    public ResponseEntity<Resource> viewThumb(
+            @PathVariable("boardId") int boardId,
+            @PathVariable("fileName") String fileName
+    ) throws Exception {
+
+        String decoded = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+
+        Path path = Paths.get(rootDir, "upload", "images", "thumb",
+                String.valueOf(boardId), decoded).normalize();
+
+        Resource resource = new UrlResource(path.toUri());
+
+        if (!resource.exists() || !resource.isReadable()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String contentType = Files.probeContentType(path);
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))

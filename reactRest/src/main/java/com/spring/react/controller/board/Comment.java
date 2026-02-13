@@ -29,7 +29,7 @@ public class Comment {
     Comment(BoardService boardService) {
         this.boardService = boardService;
     }
-	
+
 	@GetMapping("/getCommentList")
     CommentListResponseVO getCommentList(
           @RequestParam int board_no
@@ -40,7 +40,7 @@ public class Comment {
 
         //현재 토큰 작성자 명
         String viewer_user_id = (user == null) ? null : user.getUsername();
-        
+
         return commentService.getCommentList(board_no, page, size, viewer_user_id);
     }
 
@@ -70,7 +70,7 @@ public class Comment {
 	    if (!commentService.isWriter(req.getComment_no(), (user == null) ? null : user.getUsername())) {
 	    	throw new RuntimeException("작성자가 일치하지 않습니다.");
 	    }
-        
+
 
 	    commentService.updateComment(req.getComment_no(), req.getComment_content(), user.getUsername());
 	}
@@ -87,17 +87,17 @@ public class Comment {
 
 	    commentService.deleteComment(comment_no, user.getUsername());
 	}
-	
+
     @PostMapping("/comment/reaction")
     CommentReactionResponseVO reactComment(
           @RequestBody CommentReactionRequestVO req
         , @AuthenticationPrincipal UserVO user
     ) {
-        
+
         String viewer_user_id = user.getUsername();
         return commentService.reactComment(req.getComment_no(), req.getReaction_cd(), viewer_user_id);
     }
-    
+
     @GetMapping("/getReplyList")
     ReplyListResponseVO getReplyList(
           @RequestParam int board_no
@@ -110,5 +110,5 @@ public class Comment {
         return commentService.getReplyList(board_no, p_comment_no, page, size, viewer_user_id);
     }
 
-	
+
 }

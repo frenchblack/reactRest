@@ -1,17 +1,12 @@
 package com.spring.react.controller.board;
 
-import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,7 +33,7 @@ public class Board {
     private final CorsConfigurationSource corsConfigurationSource;
     @Value("${file.root-dir}")
     private String rootDir;
-    
+
 	@Autowired
 	public BoardService boardService;
 
@@ -60,13 +55,14 @@ public class Board {
 		    , String menu_cd) {
 	    return boardService.getBoardList(page, maxNext, size, keyword, type, category , subCategory, menu_cd, sort, period);
 	}
-	
+
 	//게시글 생성
 	@PostMapping("/postBoard")
-	public int postBoard( @RequestPart("data") BoardVO boardVo
+	public ResponseEntity<Map<String, Object>> postBoard( @RequestPart("data") BoardVO boardVo
 						, @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+
 		int boaordNo = boardService.postBoard(boardVo, files);
-		return boaordNo;
+		return ResponseEntity.ok(boardService.buildThumbResult(boaordNo));
 	}
 
 	//게시글 상세조회
@@ -74,19 +70,19 @@ public class Board {
 	public Map<String, Object> viewBoard(@RequestParam int board_no) {
 		boardService.increaseViewCnt(board_no);
 		Map<String, Object>result = boardService.getDetailBoardItems(board_no);
-		
+
 	    return result;
 	}
-	
+
 	//조회수 증가하지 않는 조회
 	@GetMapping("/getBoradDtail")
-	public Map<String, Object> getBoradDtail(@RequestParam int board_no) {		
+	public Map<String, Object> getBoradDtail(@RequestParam int board_no) {
 	    return boardService.getDetailBoardItems(board_no);
 	}
-	
+
 	//게시글 업데이트
 	@PutMapping("/updateBoard")
-	public int updateBoard( @RequestPart("data") BoardVO boardVo
+	public ResponseEntity<Map<String, Object>> updateBoard( @RequestPart("data") BoardVO boardVo
 						  , @RequestPart(value = "files", required = false) List<MultipartFile> files
 						  , @RequestPart(value = "deleteFiles", required = false) List<FileVO> delFileList
 						  , @AuthenticationPrincipal UserVO user) {
@@ -94,16 +90,22 @@ public class Board {
 	    System.out.println("📥 파일 수: {}" + (files != null ? files.size() : 0));
 	    System.out.println("📥 삭제파일 수: {}" + (delFileList != null ? delFileList.size() : 0));
 	    System.out.println("📥 Token user getUsername : " + user.getUsername());
-	    
+
+	    Map<String, Object> result_map = new HashMap<>();
+
 	    //작성자 일치여부 확인.
 	    if (!boardService.isWriter(boardVo.getBoard_no(), (user == null) ? null : user.getUsername())) {
-	    	return -1;
+	        result_map.put("message", "FORBIDDEN_NOT_WRITER");
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result_map);
 	    }
-	    
-		return boardService.updateBoard(boardVo, files , delFileList);
+
+	    boardService.updateBoard(boardVo, files , delFileList);
+
+	    Map<String, Object> thumb_map = boardService.buildThumbResult(boardVo.getBoard_no());
+	    return ResponseEntity.ok(thumb_map);
 //		return 0 ;
-	}	
-	
+	}
+
 	//게시글 삭제
 	@DeleteMapping("/deleteBoard")
 	public int deleteBoard( @RequestParam int board_no, @AuthenticationPrincipal UserVO user) {
@@ -113,10 +115,10 @@ public class Board {
 	    	System.out.println("작성자 일치하지 않음 : " +  user.getUsername());
 	    	return -1;
 	    }
-	    
+
 		return boardService.deleteBoard(board_no);
 	}
-	
+
 	//글작성 중 이미지 임시 저장
     @PatchMapping("/boadUpload/temp/{uuid}")
     public Map<String, Object> uploadTempFile(@PathVariable String uuid, @RequestParam("file") MultipartFile file) {
@@ -125,5 +127,18 @@ public class Board {
         result.put("url", savedPath);
         return result;
     }
-	
+
+    //Thumb
+   @PostMapping("/updateThumb")
+    public int updateThumbNone(@RequestBody Map<String, Object> body) {
+        int board_no = (body.get("board_no") == null) ? 0 : Integer.parseInt(body.get("board_no").toString());
+        return boardService.updateThumbNone(board_no);
+    }
+
+    @PatchMapping("/updateThumb")
+    public int updateThumbFile(@RequestParam int board_no
+                             , @RequestParam("thumb_file") MultipartFile thumb_file) {
+        return boardService.updateThumbByFile(board_no, thumb_file);
+    }
+
 }

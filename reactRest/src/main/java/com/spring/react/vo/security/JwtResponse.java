@@ -23,7 +23,7 @@ public class JwtResponse implements Serializable {
 	public String getToken() {
 		return this.jwttoken;
 	}
-	
+
 	public String getRefreshtoken() {
 		return this.jwtrefreshtoekn;
 	}

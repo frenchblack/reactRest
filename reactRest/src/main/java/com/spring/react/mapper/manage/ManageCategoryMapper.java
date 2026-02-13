@@ -23,6 +23,6 @@ public interface ManageCategoryMapper {
     int updateCategoryUseYnToZero(@Param("category_cd") String category_cd);
 
     int deleteCategory(@Param("category_cd") String category_cd);
-    
+
     int selectChildCategoryCount(@Param("category_cd") String category_cd);
 }

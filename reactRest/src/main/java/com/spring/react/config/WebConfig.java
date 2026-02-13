@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-	
+
     @Value("${file.root-dir}")
     private String rootDir;
 
@@ -22,7 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 //        registry.addResourceHandler("/images/**")                      // 요청 URL
 //                .addResourceLocations("file:"+ rootDir + "/upload/images/");         // 실제 파일 경로
-        
+
         registry.addResourceHandler("/file/**")                             // 파일 요청 URL
         .addResourceLocations("file:" + rootDir + "/upload/file/");   // 실제 파일 경로
     }

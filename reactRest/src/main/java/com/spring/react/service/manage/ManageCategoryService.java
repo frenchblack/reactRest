@@ -58,8 +58,12 @@ public class ManageCategoryService {
             }
 
             // 3) 기본값 보정
-            if (vo.getSort_order() <= 0) vo.setSort_order(99);
-            if (vo.getUse_yn() != 0 && vo.getUse_yn() != 1) vo.setUse_yn(1);
+            if (vo.getSort_order() <= 0) {
+				vo.setSort_order(99);
+			}
+            if (vo.getUse_yn() != 0 && vo.getUse_yn() != 1) {
+				vo.setUse_yn(1);
+			}
 
             // 4) 생성 룰 보정(서버 확정)
             normalizeForCreate(vo);
@@ -160,9 +164,9 @@ public class ManageCategoryService {
             if (category_cd == null || category_cd.trim().isEmpty()) {
                 throw new BadRequestException("CATEGORY_CD IS REQUIRED");
             }
-            
+
             int child_cnt = mapper.selectChildCategoryCount(category_cd);
-            
+
             if (child_cnt > 0) {
                 throw new BadRequestException("하위 카테고리가 존재하여 삭제할 수 없습니다.");
             }

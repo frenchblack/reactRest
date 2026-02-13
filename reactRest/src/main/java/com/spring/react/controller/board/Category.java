@@ -14,12 +14,12 @@ import com.spring.react.vo.manage.CategoryVO;
 public class Category {
 	@Autowired
 	public CategoryService categoryService;
-	
+
 	@GetMapping("/getCategories")
 	List<CategoryVO> getCategories(@RequestParam String menu_cd) {
 		return categoryService.getCategories(menu_cd);
 	}
-	
+
 	@GetMapping("/getSubCategories")
 	List<CategoryVO> getC_category(@RequestParam String p_cd) {
 		return categoryService.getSubCategories(p_cd);

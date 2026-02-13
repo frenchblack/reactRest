@@ -28,7 +28,7 @@ public class Manage {
 //		System.out.println("getManageMenuList");
 		return manageService.getManageMenuList(request);
 	}
-	
+
 	@PostMapping("/postMenu")
 	public ResponseEntity<?> inserMenu(HttpServletRequest request, @RequestBody MenuVO menuVO) {
 	    int result = manageService.postMenu(request, menuVO);

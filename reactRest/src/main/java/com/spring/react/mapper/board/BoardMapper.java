@@ -36,4 +36,7 @@ public interface BoardMapper {
 
 	String getWriter(@Param("board_no") int board_no);
 
+	int updateThumb(@Param("board_no") int board_no
+            , @Param("thumb_url") String thumb_url);
+	String getThumbUrl(@Param("board_no") int board_no);
 }

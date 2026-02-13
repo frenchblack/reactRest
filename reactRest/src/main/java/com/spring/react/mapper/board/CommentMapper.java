@@ -21,12 +21,12 @@ public interface CommentMapper {
 		    , @Param("offset") int offset
 		    , @Param("viewer_user_id") String viewer_user_id
 	);
-	
+
     int getWriter(
             @Param("comment_no") int comment_no
           , @Param("user_id") String user_id
       );
-    
+
     Integer getReactionCd(
     	      @Param("comment_no") int comment_no
     	    , @Param("user_id") String user_id
@@ -49,7 +49,7 @@ public interface CommentMapper {
 	);
 
 	int getLikeCnt(@Param("comment_no") int comment_no);
-	
+
 	int insertComment(CommentVO vo);
 
 	int updateCommentContent(
@@ -62,7 +62,7 @@ public interface CommentMapper {
 	      @Param("comment_no") int comment_no
 	    , @Param("user_id") String user_id
 	);
-	
+
 	int getReplyTotalCnt(
 		      @Param("board_no") int board_no
 		    , @Param("p_comment_no") int p_comment_no

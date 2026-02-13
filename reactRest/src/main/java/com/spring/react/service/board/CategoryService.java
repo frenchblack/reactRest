@@ -12,7 +12,7 @@ import com.spring.react.vo.manage.CategoryVO;
 public class CategoryService {
 	@Autowired
 	public CategoryMapper mapper;
-	
+
 	public List<CategoryVO> getCategories(String menu_cd){
 		return mapper.getCategories(menu_cd);
 	}

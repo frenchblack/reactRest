@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
 public class TempFileCleanupScheduler {
     @Value("${file.root-dir}")
     private String rootDir;
-    
+
     @Value("${file.cleanup.expire-hours}")
     private int expireHours;
-    
+
     // 매시간 정각마다 실행
     @Scheduled(cron = "0 * * * * *")
     public void cleanupTempFiles() {
@@ -32,12 +32,16 @@ public class TempFileCleanupScheduler {
         Instant cutoff = Instant.now().minus(expireHours, ChronoUnit.HOURS);
         deleteOldFiles(tempRoot, cutoff); // 재귀 삭제 호출
     }
-    
+
     private void deleteOldFiles(File dir, Instant cutoff) {
-        if (!dir.exists()) return;
+        if (!dir.exists()) {
+			return;
+		}
 
         File[] contents = dir.listFiles();
-        if (contents == null) return;
+        if (contents == null) {
+			return;
+		}
 
         for (File file : contents) {
             if (file.isDirectory()) {
