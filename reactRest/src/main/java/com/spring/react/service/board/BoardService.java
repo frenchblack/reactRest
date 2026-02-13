@@ -16,8 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.spring.react.exception.BadRequestException;
 import com.spring.react.mapper.board.BoardMapper;
 import com.spring.react.service.common.OwnershipService;
 import com.spring.react.vo.BoardVO;
@@ -43,6 +46,22 @@ public class BoardService {
     private final String FILE_DIR = "/file/board/";
     private final String THUMB_DIR = "/images/thumb/";
     private final String IMAGE_PATTERN = "<img[^>]+src=[\"']((?:https?:\\/\\/[^\"'>]+)?\\/images\\/[^\"'>]+)[\"']";
+    
+    //===========================================================================
+    // ✅ TEMP 업로드 제한 (uuid 폴더 기준)
+    //===========================================================================
+    private final int TEMP_UUID_MAX_FILE_CNT = 10;
+    private final long TEMP_UUID_MAX_TOTAL_BYTES = 30L * 1024L * 1024L; // 30MB
+    private final long TEMP_FILE_MAX_BYTES = 5L * 1024L * 1024L;        // 5MB
+
+    //===========================================================================
+    // ✅ uuid 동시 업로드 레이스 방지용 락
+    //===========================================================================
+    private final ConcurrentHashMap<String, Object> temp_uuid_lock_map = new ConcurrentHashMap<>();
+
+    private Object getTempUuidLock(String uuid) {
+        return temp_uuid_lock_map.computeIfAbsent(uuid, k -> new Object());
+    }
 
 	@Autowired
 	public BoardMapper mapper;
@@ -208,22 +227,108 @@ public class BoardService {
 	    }
 	}
 
-	//글작성 중 파일 임시 저장.
-	public String saveTempFile(String uuid, MultipartFile file) {
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        String dirPath = rootDir + "/upload/images/temp/" + uuid;
-        String filePath = dirPath + "/" + fileName;
+    //글작성 중 파일 임시 저장.
+    public String saveTempFile(String uuid, MultipartFile file) {
 
-        try {
-            Files.createDirectories(Paths.get(dirPath));
-            file.transferTo(Paths.get(filePath));
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (uuid == null || uuid.trim().isEmpty()) {
+            throw new BadRequestException("TEMP_UUID_REQUIRED");
         }
 
-        return "/images/temp/" + uuid + "/" + fileName;
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("TEMP_FILE_REQUIRED");
+        }
 
-	}
+        // 1) 파일 1개 제한
+        long incoming_bytes = file.getSize();
+        if (incoming_bytes > TEMP_FILE_MAX_BYTES) {
+            throw new BadRequestException("TEMP_FILE_TOO_LARGE");
+        }
+
+        //확장자 제한
+        String original_name = file.getOriginalFilename();
+        if (original_name == null) {
+            throw new BadRequestException("FILE_NAME_REQUIRED");
+        }
+
+        String lower_name = original_name.toLowerCase();
+
+        if (!(lower_name.endsWith(".jpg")
+           || lower_name.endsWith(".jpeg")
+           || lower_name.endsWith(".png")
+           || lower_name.endsWith(".webp")
+           || lower_name.endsWith(".gif")
+           || lower_name.endsWith(".heic"))) {
+
+            throw new BadRequestException("UNSUPPORTED_IMAGE_TYPE");
+        }
+
+        // uuid 폴더 경로
+        Path temp_dir = Paths.get(rootDir, "upload", "images", "temp", uuid);
+
+        // 3) 동시 업로드 레이스 방지
+        Object uuid_lock = getTempUuidLock(uuid);
+
+        synchronized (uuid_lock) {
+
+            try {
+                Files.createDirectories(temp_dir);
+            } catch (IOException e) {
+                throw new BadRequestException("TEMP_DIR_CREATE_FAILED");
+            }
+
+            // 4) uuid 폴더 기준 현재 상태 계산
+            int current_file_cnt = getDirFileCount(temp_dir);
+            long current_total_bytes = getDirTotalBytes(temp_dir);
+
+            int next_file_cnt = current_file_cnt + 1;
+            long next_total_bytes = current_total_bytes + incoming_bytes;
+
+            if (next_file_cnt > TEMP_UUID_MAX_FILE_CNT) {
+                throw new BadRequestException("TEMP_QUOTA_FILE_CNT_EXCEEDED");
+            }
+
+            if (next_total_bytes > TEMP_UUID_MAX_TOTAL_BYTES) {
+                throw new BadRequestException("TEMP_QUOTA_TOTAL_SIZE_EXCEEDED");
+            }
+
+            // 5) 저장
+            String file_name = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path save_path = temp_dir.resolve(file_name);
+
+            try {
+                file.transferTo(save_path);
+            } catch (IOException e) {
+                throw new BadRequestException("TEMP_FILE_SAVE_FAILED");
+            }
+
+            return "/images/temp/" + uuid + "/" + file_name;
+        }
+    }
+
+    private int getDirFileCount(Path dir) {
+        try (Stream<Path> stream = Files.list(dir)) {
+            return (int) stream.filter(Files::isRegularFile).count();
+        } catch (IOException e) {
+            return 0;
+        }
+    }
+
+    private long getDirTotalBytes(Path dir) {
+        try (Stream<Path> stream = Files.list(dir)) {
+            return stream
+                .filter(Files::isRegularFile)
+                .mapToLong(p -> {
+                    try {
+                        return Files.size(p);
+                    } catch (IOException e) {
+                        return 0L;
+                    }
+                })
+                .sum();
+        } catch (IOException e) {
+            return 0L;
+        }
+    }
 
 	//글 저장시 임시파일에 있던 이미지 저장경로로 변경
     public Boolean replaceTempPath(BoardVO boardVo) {
