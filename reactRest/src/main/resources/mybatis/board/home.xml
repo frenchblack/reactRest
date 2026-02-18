@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.react.mapper.board.HomeMapper">
+
+    <!-- ==========================================================
+         최신 소식 (NOTICE 하위 메뉴 글 최신순)
+         ========================================================== -->
+    <select id="getHomeNews" parameterType="map" resultType="com.spring.react.vo.home.HomeNewsVO">
+	    SELECT A.BOARD_NO        AS BOARD_NO
+	         , A.TITLE           AS TITLE
+	         , A.WRITE_DATE      AS WRITE_DATE
+	         , B.MENU_NM         AS TYPE_NM
+	         , B.MENU_CD         AS MENU_CD
+	         , B.MENU_URL        AS MENU_URL
+	    FROM BOARD A
+	    JOIN MENU  B
+	      ON A.MENU_CD = B.MENU_CD
+	    WHERE A.EX_DEL   = 0
+	      AND B.USE_YN   = 1
+	      AND B.MENU_LVL = 2
+	      AND B.P_CD IN ('NOTICE', 'UPDATE')
+	    ORDER BY A.WRITE_DATE DESC
+	    LIMIT #{limit}
+    </select>
+
+    <!-- ==========================================================
+         핫 메뉴 (최근 N일 내 글 수)
+         ========================================================== -->
+    <select id="getHomeHotMenus" parameterType="map" resultType="com.spring.react.vo.home.HomeHotMenuVO">
+        SELECT B.MENU_CD         AS MENU_CD
+             , B.MENU_NM         AS MENU_NM
+             , B.MENU_URL        AS MENU_URL
+             , COUNT(1)          AS BOARD_CNT
+        FROM BOARD A
+        JOIN MENU  B
+          ON A.MENU_CD = B.MENU_CD
+        WHERE A.EX_DEL     = 0
+          AND B.USE_YN     = 1
+          AND B.MENU_LVL   = 2
+          AND A.WRITE_DATE >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        GROUP BY B.MENU_CD
+               , B.MENU_NM
+               , B.MENU_URL
+        ORDER BY BOARD_CNT DESC
+               , B.S_ORD   ASC
+        LIMIT #{limit}
+    </select>
+
+    <!-- ==========================================================
+         메뉴별 베스트글 (LIKE | VIEW)
+         ========================================================== -->
+    <select id="getHomeBestBoards" parameterType="map" resultType="com.spring.react.vo.home.HomeBestBoardVO">
+        SELECT A.BOARD_NO        AS BOARD_NO
+             , A.TITLE           AS TITLE
+             , A.WRITE_DATE      AS WRITE_DATE
+             , A.LIKE_CNT        AS LIKE_CNT
+             , A.VIEW_CNT        AS VIEW_CNT
+             , A.THUMB_URL       AS THUMB_URL
+             , B.MENU_CD         AS MENU_CD
+             , B.MENU_NM         AS MENU_NM
+             , B.MENU_URL        AS MENU_URL
+        FROM BOARD A
+        JOIN MENU  B
+          ON A.MENU_CD = B.MENU_CD
+        WHERE A.EX_DEL  = 0
+          AND B.USE_YN  = 1
+          AND A.MENU_CD = #{menu_cd}
+        <choose>
+            <when test="sort_cd == 'VIEW'">
+                ORDER BY A.VIEW_CNT DESC
+                       , A.WRITE_DATE DESC
+            </when>
+            <otherwise>
+                ORDER BY A.LIKE_CNT DESC
+                       , A.WRITE_DATE DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit}
+    </select>
+
+</mapper>

@@ -77,6 +77,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         , "/getChildMenuList"
                         , "/getBoardList", "/getCategories", "/getSubCategories", "/viewBoard"
                         , "/getCommentList", "/getReplyList"
+                        , "/getHomeNews", "/getHomeHotMenus", "/getHomeBestBoards"
                         , "/images/**"
                         , "/file/**").permitAll()
 

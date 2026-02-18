@@ -63,6 +63,17 @@ public class BoardService {
         return temp_uuid_lock_map.computeIfAbsent(uuid, k -> new Object());
     }
 
+	 //==========================================================
+	 // 썸네일 정책
+	 //==========================================================
+	 private static final long THUMB_SIZE_LIMIT = 500 * 1024; // 500KB
+	
+	 private static final Set<String> THUMB_ALLOWED_TYPES = Set.of(
+	       "image/jpeg"
+	     , "image/png"
+	     , "image/gif"
+	 );
+    
 	@Autowired
 	public BoardMapper mapper;
 
@@ -507,6 +518,39 @@ public class BoardService {
 // Thumbnail function
 //
 //#############################################################################
+	// 본문에서 img src 전체 추출 (순서 보존)
+	private List<String> extractImageSrcList(String html) {
+	    List<String> list = new ArrayList<>();
+
+	    if (html == null || html.isEmpty()) {
+	        return list;
+	    }
+
+	    Matcher matcher = Pattern.compile(IMAGE_PATTERN).matcher(html);
+	    while (matcher.find()) {
+	        list.add(matcher.group(1));
+	    }
+	    return list;
+	}
+
+	// 파일 타입 추정 (probeContentType 우선, 실패 시 확장자 fallback)
+	private String get_file_type_from_path(Path path) {
+
+	    try {
+	        String probed = Files.probeContentType(path);
+	        if (probed != null) return probed.toLowerCase();
+	    } catch (Exception e) {
+	        // ignore
+	    }
+
+	    String name = path.getFileName().toString().toLowerCase();
+	    if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+	    if (name.endsWith(".png")) return "image/png";
+	    if (name.endsWith(".gif")) return "image/gif";
+
+	    return null;
+	}
+	
 	// 첫 img src 뽑기 (기존 IMAGE_PATTERN 재사용)
 	private String extractFirstImageSrc(String html) {
 	    if (html == null || html.isEmpty()) {
@@ -542,33 +586,62 @@ public class BoardService {
 
 	private void updateThumbAuto(int board_no, String content) {
 
-	    String first_src = extractFirstImageSrc(content);
-	    String thumb_relative = normalizeThumbUrl(first_src);
+	    // 1) 본문 이미지 src 전체 추출
+	    List<String> src_list = extractImageSrcList(content);
 
-	    // 본문에 이미지 없음 -> 썸네일 null + (선택) thumb 폴더 정리
-	    if (thumb_relative == null) {
+	    if (src_list.isEmpty()) {
 	        updateThumbNone(board_no);
 	        return;
 	    }
 
-	    // ✅ 여기서 URL 디코딩 필수 (한글 파일명 대응)
-	    String decoded_relative = URLDecoder.decode(thumb_relative, StandardCharsets.UTF_8);
-	    
-	    // 원본 이미지 파일 절대경로
-	    String absolute_path = convertToAbsolutePath(decoded_relative);
-	    File source_file = new File(absolute_path);
+	    // 2) 첫번째부터 순회하면서 "썸네일 가능한 포맷" 찾기
+	    for (String src : src_list) {
 
-	    // 파일이 실제로 없으면 null 처리
-	    if (!source_file.exists()) {
-	        updateThumbNone(board_no);
-	        return;
+	        String thumb_relative = normalizeThumbUrl(src);
+	        if (thumb_relative == null) {
+	            continue;
+	        }
+
+	        // ✅ URL 디코딩 필수 (한글 파일명)
+	        String decoded_relative = URLDecoder.decode(thumb_relative, StandardCharsets.UTF_8);
+
+	        // 원본 이미지 절대경로
+	        String absolute_path = convertToAbsolutePath(decoded_relative);
+	        File source_file = new File(absolute_path);
+
+	        if (!source_file.exists()) {
+	            continue;
+	        }
+
+	        Path source_path = source_file.toPath();
+
+	        // ✅ 파일 타입 확인 (jpg/png/gif만 허용)
+	        String file_type = get_file_type_from_path(source_path);
+
+	        if (!is_thumb_allowed(file_type)) {
+	            continue; // ❗썸네일 불가면 다음 이미지로
+	        }
+
+	        // ✅ 파일 사이즈
+	        long file_size = 0L;
+	        try {
+	            file_size = Files.size(source_path);
+	        } catch (IOException e) {
+	            continue;
+	        }
+
+	        // 3) 썸네일 저장
+	        try (java.io.InputStream in = Files.newInputStream(source_path)) {
+	            saveThumbFromStream(board_no, in, file_type, file_size);
+	            return; // ✅ 성공하면 종료
+	        } catch (IOException e) {
+	            // 실패하면 다음 이미지 시도
+	            continue;
+	        }
 	    }
 
-	    try (java.io.InputStream in = Files.newInputStream(source_file.toPath())) {
-	        saveThumbFromStream(board_no, in);
-	    } catch (IOException e) {
-	        throw new RuntimeException("AUTO_THUMB_CREATE_FAIL", e);
-	    }
+	    // 4) 본문에 썸네일 가능한 이미지가 하나도 없으면 자동 저장 안 함
+	    updateThumbNone(board_no);
 	}
 
 //	public int updateThumbByUrl(int board_no, String thumb_url) {
@@ -589,10 +662,23 @@ public class BoardService {
 	}
 
 	public int updateThumbByFile(int board_no, MultipartFile thumb_file) {
-	    if (thumb_file == null || thumb_file.isEmpty()) return 0;
+
+	    if (thumb_file == null || thumb_file.isEmpty()) {
+	        return 0;
+	    }
+
+	    String file_type = (thumb_file.getContentType() != null)
+	            ? thumb_file.getContentType().toLowerCase()
+	            : null;
+
+	    if (!is_thumb_allowed(file_type)) {
+	        throw new BadRequestException("THUMB_UNSUPPORTED_FORMAT");
+	    }
+
+	    long file_size = thumb_file.getSize();
 
 	    try {
-	        return saveThumbFromStream(board_no, thumb_file.getInputStream());
+	        return saveThumbFromStream(board_no, thumb_file.getInputStream(), file_type, file_size);
 	    } catch (IOException e) {
 	        throw new RuntimeException("THUMB_UPLOAD_STREAM_FAIL", e);
 	    }
@@ -616,14 +702,42 @@ public class BoardService {
 	}
 
 	// ✅ 썸네일 저장 + DB 업데이트 (InputStream 기반으로 통일)
-	private int saveThumbFromStream(int board_no, java.io.InputStream in) {
+	// - 500KB 이하: 변환/압축 없이 그대로 저장
+	// - 500KB 초과: 리사이즈 + jpg 변환
+	private int saveThumbFromStream(int board_no, java.io.InputStream in, String file_type, long file_size) {
+
+	    if (!is_thumb_allowed(file_type)) {
+	        throw new BadRequestException("THUMB_UNSUPPORTED_FORMAT");
+	    }
+
 	    Path dir = getThumbDir(board_no);
 
 	    try {
 	        clearThumbDir(dir);
 	        Files.createDirectories(dir);
 
-	        String saved_nm = UUID.randomUUID() + ".jpg"; //썸네일이라 파일명 저장 X
+	        //==========================================================
+	        // 500KB 이하 → 원본 그대로 저장 (화질저하 없음)
+	        //==========================================================
+	        if (file_size > 0 && file_size <= THUMB_SIZE_LIMIT) {
+
+	            String ext = ".jpg";
+	            if ("image/png".equalsIgnoreCase(file_type)) ext = ".png";
+	            if ("image/gif".equalsIgnoreCase(file_type)) ext = ".gif";
+
+	            String saved_nm = UUID.randomUUID() + ext;
+	            Path out = dir.resolve(saved_nm).normalize();
+
+	            Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING);
+
+	            String web_path = THUMB_DIR + board_no + "/" + saved_nm;
+	            return mapper.updateThumb(board_no, web_path);
+	        }
+
+	        //==========================================================
+	        // 500KB 초과 → 리사이즈 + jpg 변환 (화질저하 허용)
+	        //==========================================================
+	        String saved_nm = UUID.randomUUID() + ".jpg";
 	        Path out = dir.resolve(saved_nm).normalize();
 
 	        Thumbnails.of(in)
@@ -645,6 +759,13 @@ public class BoardService {
 	    result.put("board_no", board_no);
 	    result.put("thumb_url", mapper.getThumbUrl(board_no));
 	    return result;
+	}
+
+	private boolean is_thumb_allowed(String file_type) {
+
+	    if (file_type == null) return false;
+
+	    return THUMB_ALLOWED_TYPES.contains(file_type.toLowerCase());
 	}
 	
 }

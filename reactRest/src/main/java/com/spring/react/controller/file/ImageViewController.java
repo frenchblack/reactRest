@@ -5,10 +5,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -75,6 +77,7 @@ public class ImageViewController {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
+                .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic())
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
                 .body(resource);
     }
@@ -102,6 +105,7 @@ public class ImageViewController {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
+                .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic())
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
                 .body(resource);
     }
